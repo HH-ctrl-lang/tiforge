@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v0.6",
+  "workflow_version": "v0.3",
+  "harness_version": "v0.3",
+  "case_id": "low-modulus-01",
+  "session_id": "9e2c9b09-50ac-4503-b95d-b8296d5d6765",
+  "request_id": "fb92ee0e-ce2f-411c-bd44-694a710d1c6f",
+  "requested_at": "2026-11-18T21:09:35.782008+08:00",
+  "inputs": {
+    "query": "生成两个低模量β钛合金候选。"
+  }
+}

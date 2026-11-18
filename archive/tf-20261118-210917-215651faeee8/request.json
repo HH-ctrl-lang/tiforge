@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v0.6",
+  "workflow_version": "v0.3",
+  "harness_version": "v0.3",
+  "case_id": "no-ta-01",
+  "session_id": "4f143666-066e-46b5-9a6b-8dd1bcc1e8e1",
+  "request_id": "5a3f767c-e35b-40c2-9fcb-1388738476fe",
+  "requested_at": "2026-11-18T21:09:17.097193+08:00",
+  "inputs": {
+    "query": "生成两个无Ta的钛合金候选。"
+  }
+}

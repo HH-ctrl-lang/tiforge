@@ -1,0 +1,12 @@
+{
+  "run_id": "tf-20261118-144145-121d13e6",
+  "archived_at": "2026-11-18T14:41:45.104243",
+  "source_file": "D:\\工作\\华为ICT\\TiForge\\logging\\runtime_smoke_events.jsonl",
+  "event_count": 51,
+  "node_count": 7,
+  "workflow_status": "succeeded",
+  "raw_events_file": "raw_events.jsonl",
+  "normalized_run_file": "runs.jsonl",
+  "normalized_node_file": "nodes.jsonl",
+  "normalized_event_file": "events.jsonl"
+}

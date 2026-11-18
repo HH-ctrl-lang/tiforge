@@ -1,0 +1,2 @@
+{"case_id":"low-modulus-01","inputs":{"query":"设计一种低模量β钛合金。允许使用Ti、Nb、Zr、Ta、Sn、Mo，禁止使用V、Al、Ni。Ta允许使用但尽量减少。采用wt.%，生成两个候选方案。"}}
+{"case_id":"no-ta-01","inputs":{"query":"生成两个无Ta的钛合金候选。只允许使用Ti、Nb、Zr、Sn。请以wt.%给出各元素含量，成分总和为100。"}}

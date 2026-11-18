@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v0.6",
+  "workflow_version": "v0.3",
+  "harness_version": "v0.3",
+  "case_id": "smoke-alloy",
+  "session_id": "0a175ab7-643d-4620-b198-a604ceef599f",
+  "request_id": "739863f4-6aee-4ab6-943d-4941f58806fc",
+  "requested_at": "2026-11-18T21:08:08.326490+08:00",
+  "inputs": {
+    "query": "设计一种生物医用低模量β钛合金。允许使用Ti、Nb、Zr、Ta、Sn、Mo，禁止使用V、Al、Ni。Ta允许使用但尽量减少。采用wt.%，生成两个候选方案。"
+  }
+}

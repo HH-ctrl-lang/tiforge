@@ -1,0 +1,23 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v0.6",
+  "workflow_version": "v0.3",
+  "harness_version": "v0.3",
+  "case_id": "smoke-alloy",
+  "session_id": "0a175ab7-643d-4620-b198-a604ceef599f",
+  "request_id": "739863f4-6aee-4ab6-943d-4941f58806fc",
+  "requested_at": "2026-11-18T21:08:08.326490+08:00",
+  "input_file": "request.json",
+  "run_id": "tf-20261118-210808-5a42a7109bd4",
+  "archived_at": "2026-11-18T21:09:04.826206+08:00",
+  "source_file": "raw_events.jsonl",
+  "event_count": 51,
+  "node_count": 7,
+  "workflow_status": "succeeded",
+  "capture_error": null,
+  "raw_events_file": "raw_events.jsonl",
+  "normalized_run_file": "runs.jsonl",
+  "normalized_node_file": "nodes.jsonl",
+  "normalized_event_file": "events.jsonl"
+}

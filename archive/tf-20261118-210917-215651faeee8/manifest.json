@@ -1,0 +1,23 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v0.6",
+  "workflow_version": "v0.3",
+  "harness_version": "v0.3",
+  "case_id": "no-ta-01",
+  "session_id": "4f143666-066e-46b5-9a6b-8dd1bcc1e8e1",
+  "request_id": "5a3f767c-e35b-40c2-9fcb-1388738476fe",
+  "requested_at": "2026-11-18T21:09:17.097193+08:00",
+  "input_file": "request.json",
+  "run_id": "tf-20261118-210917-215651faeee8",
+  "archived_at": "2026-11-18T21:09:35.743116+08:00",
+  "source_file": "raw_events.jsonl",
+  "event_count": 51,
+  "node_count": 7,
+  "workflow_status": "succeeded",
+  "capture_error": null,
+  "raw_events_file": "raw_events.jsonl",
+  "normalized_run_file": "runs.jsonl",
+  "normalized_node_file": "nodes.jsonl",
+  "normalized_event_file": "events.jsonl"
+}
