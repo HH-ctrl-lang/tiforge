@@ -1,19 +1,42 @@
 # TiForge Runtime 测试与日志
 
-在终端进入日志目录。
+如果已经克隆仓库，在 PowerShell 中进入本地仓库目录。首次下载请直接看第 1 节。
 
 ```powershell
-Set-Location -LiteralPath '你保存的目录路径'
+Set-Location -LiteralPath '你保存的 tiforge-logging 目录路径'
 ```
 
-## 1. 从仓库拉取最新代码分支
+## 1. 从仓库拉取最新代码
 
-仓库创建后补充。
+### 首次下载
+
+在 PowerShell 中进入你想存放项目的上一级目录，然后运行以下命令。
+
+```powershell
+git clone https://github.com/HH-ctrl-lang/tiforge-logging.git
+Set-Location -LiteralPath '.\tiforge-logging'
+python -m pip install requests
+```
+
+`git clone` 会创建 `tiforge-logging` 文件夹。进入该目录后，按第 2 节继续。
+
+### 以后同步最新代码
+
+因为版本号、测试输入格式或者日志记录流程可能会有变更，所以大家进行测试前还是都拉取一下最新的代码。
+
+进入已经克隆的 `tiforge-logging` 目录，先运行 `git status --short`。如果有未提交的工作，按第 6 节先在自己的分支提交。确认工作区干净后，再更新 `main`。
+
+```powershell
+git switch main
+git pull --ff-only origin main
+```
+
+如果 Git 提示有本地修改会被覆盖，或无法快进合并，先保留终端提示，并在群里确认如何处理当前改动。需要继续修改代码或用例时，按第 6 节创建或切回自己的工作分支。
 
 ## 目录结构
 
 ```text
-logging/
+tiforge-logging/
 ├── README.md
 ├── run_and_archive.py  日常测试入口
 ├── config/             版本配置与本机凭据
@@ -63,7 +86,7 @@ python .\run_and_archive.py --case-id 'no-ta-01' --query '生成两个无Ta的�
 
 ## 4. 批量测试
 
-参照`cases/cases.example.jsonl`示例，创建自己的`cases/cases.jsonl`用例文件。
+参照 `cases/cases.example.jsonl` 创建自己的批量用例文件。下面以 `cases/cases_01.jsonl` 为例，每行写一个 JSON 对象，每条用例使用唯一的 `case_id`。
 
 ```jsonl
 {"case_id":"no-ta-01","inputs":{"query":"生成两个无Ta的钛合金候选。"}}
@@ -71,8 +94,10 @@ python .\run_and_archive.py --case-id 'no-ta-01' --query '生成两个无Ta的�
 ```
 
 ```powershell
-python .\run_and_archive.py --cases .\cases\cases.jsonl
+python .\run_and_archive.py --cases .\cases\cases_01.jsonl
 ```
+
+想直接试跑仓库自带的示例，可以把 `--cases` 后的路径换成 `.\cases\cases.example.jsonl`。使用其他用例时，填对应的实际文件路径。
 
 批量测试会按文件顺序发起调用，每条生成自己的 Run 目录。单条出现已归档的调用或工作流异常时，脚本会继续处理后面的用例。批次有异常时退出码为非零，可用 `$LASTEXITCODE` 查看。批量命令和 `--query` 分开使用。
 
@@ -88,7 +113,44 @@ python .\run_and_archive.py --cases .\cases\cases.jsonl
 | `run_diagnostics.jsonl`、`failure_records.jsonl` | 运行诊断和异常记录                           |
 | `scientific_outcomes.jsonl`                        | 从节点输出提取的科研结果                     |
 
-版本默认从 `config/config.json` 读取。比较基线和改进版时，先将 `config/runtime.local.json` 的调用地址切到实际要测试的部署端点，再用同一份 `cases/cases.jsonl` 跑一遍。
+归档版本默认从 `config/config.json` 读取。比较基线和改进版时，用同一份批量用例分别调用两个版本的实际部署端点。切换调用地址后，同时更新版本配置，或运行时用 `--workflow-version` 和 `--harness-version` 记录本次版本。版本参数只设置归档标签。
+
+## 6. 推送代码到 GitHub
+
+首次提交时创建自己的工作分支，把示例分支名 yourname 换成自己的：
+
+```powershell
+git switch -c yourname/update-cases
+```
+
+继续已有任务时，用 `git switch yourname/update-cases` 切回对应分支。
+
+把 `git add` 后的路径换成这次要共享的文件。因为仓库是公开的，注意不要上传包含 api 信息的`config/runtime.local.json文件` 。
+
+```powershell
+git add -- cases/cases_caseid.jsonl
+```
+
+提交前核对暂存列表，第二条命令应没有输出。
+
+```powershell
+git diff --cached --name-status
+git ls-files -- config/runtime.local.json
+```
+
+确认后附上简洁的提交说明。
+
+```powershell
+git commit -m "提交说明内容"
+```
+
+第一次推送当前分支用下面的命令。之后同一分支有新提交，运行 `git push` 就可以更新它。
+
+```powershell
+git push -u origin HEAD
+```
+
+推送后打开 [仓库页面](https://github.com/HH-ctrl-lang/tiforge-logging)，点 **Compare & pull request**，或在 **Pull requests → New pull request** 中选择 `base: main` 和你的工作分支。提交请求后告诉我我来检查合并。
 
 ## 诊断与分析（正常运行时可忽略）
 
