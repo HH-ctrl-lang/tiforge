@@ -50,7 +50,7 @@ tiforge-logging/
 
 ## 2. 在本机保存调用地址和 API Key
 
-打开 `config/runtime.local.json`，在引号中填入当前版本的 API 调用地址和 Key。有更新会在群里通知大家。
+打开 `config/runtime.local.json`，在引号中填入 API 调用地址和 Key。两者都已经发在群里。
 
 | 字段        | 填什么                                                 |
 | ----------- | ------------------------------------------------------ |
