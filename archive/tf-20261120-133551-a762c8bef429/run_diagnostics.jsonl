@@ -1,0 +1,1 @@
+{"run_id": "tf-20261120-133551-a762c8bef429", "workflow_status": "failed", "node_count": 6, "failed_node_count": 1, "error_node_count": 1, "diagnostic_status": "failed", "failure_ids": ["failure-585a101acf6b"], "diagnosed_at": "2026-11-20T13:36:46.964533"}
