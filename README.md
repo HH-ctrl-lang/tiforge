@@ -1,29 +1,53 @@
 # TiForge
 
-TiForge 的 Runtime 日志工具和 Harness 外环是两个同级模块。
+TiForge 包含 Runtime 日志工具和 Harness 外环两个模块。
 
-| 目录 | 职责 |
-| --- | --- |
-| [logging/](logging/README.md) | 调用已部署的 Runtime，采集、归档并诊断运行。 |
-| [harness/](harness/README.md) | 读取运行归档中的证据，生成待人工复核的 Harness 改进提案。 |
+| 模块                         | 职责                                                      |
+| ---------------------------- | --------------------------------------------------------- |
+| [logging/](logging/README.md) | 调用已部署的 Runtime，采集、归档并诊断运行。              |
+| [harness/](harness/README.md) | 配对评测基线与候选运行，输出改进裁决。 |
 
-## 运行日志工具
+## 首次克隆
 
-克隆仓库后，从仓库根目录执行：
-
-```powershell
-Set-Location .\logging
-python -m pip install requests
-```
-
-按日志模块 README 配置本机调用地址和 API Key，再运行 `python .\run_and_archive.py`。本机凭据文件位于 `logging/config/runtime.local.json`。
-
-## 运行 Harness 外环
-
-从仓库根目录执行，下例的 `tf-...` 请替换为实际 Run 目录名：
+在 PowerShell 中进入准备存放项目的上一级目录，执行以下命令。之后的 Git 命令都从 TiForge 仓库根目录执行。
 
 ```powershell
-python -m harness.propose_change .\logging\archive\tf-...
+git clone https://github.com/HH-ctrl-lang/tiforge-logging.git TiForge
+Set-Location -LiteralPath '.\TiForge'
 ```
 
-Harness 也可以读取其他位置的运行归档。所需文件和提案格式见 [Harness README](harness/README.md)。
+## 同步最新代码
+
+先运行 `git status --short` 查看本地改动。有未提交的工作时，先在自己的分支提交。确认工作区干净后更新主分支。
+
+```powershell
+git switch main
+git pull --ff-only origin main
+```
+
+如果 Git 提示会覆盖本地改动或无法快进合并，保留终端提示，并在群里确认如何处理。
+
+## 提交和推送改动
+
+首次开展任务时，从更新后的 `main` 创建自己的分支，将 `yourname/update-cases` 替换为实际分支名。继续已有任务时，用 `git switch yourname/update-cases` 切回该分支。
+
+```powershell
+git switch -c yourname/update-cases
+```
+
+从仓库根目录暂存需要共享的文件。按实际改动替换下面的示例路径。
+
+```powershell
+git add -- logging/cases/cases_multiscenario.jsonl
+git diff --cached --name-status
+git ls-files -- logging/config/runtime.local.json
+```
+
+提交前核对暂存清单。最后一条命令应没有输出，表示本机 API 凭据文件未被 Git 跟踪。
+
+```powershell
+git commit -m "提交说明内容"
+git push -u origin HEAD
+```
+
+同一分支后续有新提交时，运行 `git push`。推送后在 GitHub 发起 Pull Request，选择 `main` 为目标分支，选择自己的分支作为来源，并通知团队审核。 [GitHub 仓库](https://github.com/HH-ctrl-lang/tiforge)
