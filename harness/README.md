@@ -49,3 +49,50 @@ python -B -m harness v01 --baseline $baseline --candidate $candidate --target-ca
 python -B -m harness v00 --baseline $baseline --candidate $candidate --target-case nb-conflict-01 --change '修复 Nb 冲突时的澄清输出'
 python -B -m unittest discover -s harness/tests -v
 ```
+
+## 独立评价一次内环运行
+
+归档生成后，可以只评价一条 Run。该命令读取固定用例和归档，核对用例 ID、实际输入和版本，
+再输出单条的 `pass`、`fail` 或 `needs_review`，退出码分别为 0、1、2。
+设计和澄清用例默认使用组里的 v01 规则。复查旧用例时指定 `--engine v00`。
+
+```text
+python -m harness.evaluate --engine v00 --cases harness/cases/v00.jsonl --run logging/archive/tf-20261120-193643-db590628b0b1
+```
+
+第 6.4 节的失败分支可在固定用例的 `expected` 中用 `route: failure_handling` 和
+`checks` 指定。触发条件由测试输入提供，期望处理方式由固定用例提供。
+每项检查指明节点、结构化字段和期望值。例如，下面用一条总和错误的配方验证守门节点。
+如果节点返回拒绝、对应规则编号和原因，这条用例通过。
+
+```json
+{
+  "route": "failure_handling",
+  "checks": [
+    {
+      "type": "hard_constraint_violation",
+      "node": "材料成分约束检查",
+      "field": "candidate_decisions",
+      "where": {"candidate_id": "C01"},
+      "equals": {"status": "reject", "rule_id": "COMPOSITION"},
+      "required_text": ["reason"]
+    }
+  ]
+}
+```
+
+| 失败类型 | 固定用例应核对的处理结果 |
+| --- | --- |
+| `hard_constraint_violation` | 拒绝对应候选，返回规则 ID 和原因 |
+| `out_of_domain` | 标记超出数据范围，如 `physical_checks` 中对应 `DATA_COVERAGE` 的 `flagged` 记录 |
+| `prediction_uncertainty` | 降低可信等级，给出补充验证建议 |
+| `insufficient_evidence` | 提示缺什么证据，要求补充 |
+| `tool_error` | 根据错误码重试、修正或停止，核对实际处理结果 |
+| `insufficient_budget` | 停止高成本验证，返回当前验证等级 |
+
+`field` 可省略，此时核对节点输出对象本身。列表输出通过 `where` 选择唯一一条记录。
+默认读取节点输出，也可以用 `source: error` 读取节点错误对象。
+证据明确和预期不符时判失败，缺少记录或字段时转待复核。
+正常完成的分支默认要求 `succeeded`。需要验证工作流按规定停止时，可在该用例的
+`expected.workflow_status` 指定 `failed`，仍需通过该用例定义的各项检查。
+用例集须按具体节点实际提供的结构化字段来写。自定义失败分支用例可通过本单次评价命令运行。
