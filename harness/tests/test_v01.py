@@ -53,6 +53,16 @@ class DevelopmentHarnessTest(unittest.TestCase):
         self.assertEqual(result["status"], "pass")
         self.assertEqual(result["evidence"]["gate_states"], {"C01": "needs_review"})
 
+    def test_independent_evaluator_uses_v01_for_pending_candidate(self):
+        from harness.evaluate import evaluate_run
+
+        self.evaluate_run()
+        self.assertEqual(evaluate_run(self.run, self.manifest, self.expected), ("pass", []))
+        self.write_outcome("gate_rejected")
+        status, issues = evaluate_run(self.run, self.manifest, self.expected)
+        self.assertEqual(status, "fail")
+        self.assertIn("archive_gate_mapping", [issue["code"] for issue in issues])
+
     def test_pending_archived_as_rejected_fails(self):
         self.write_outcome("gate_rejected")
         result = self.evaluate_run()
