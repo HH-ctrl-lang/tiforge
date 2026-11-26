@@ -9,14 +9,10 @@ import subprocess
 import sys
 from uuid import uuid4
 
-from .common import check_composition, load_batch, load_cases, node_fields, read_rows
+from ..evaluate import DESIGN, FORMAT_REPLY, GATE, LITERATURE, REVIEW, evaluate_archive as evaluate, load_cases
+from .common import load_batch
 
 
-LITERATURE = "文献知识提取"
-DESIGN = "候选材料设计"
-GATE = "材料成分约束检查"
-REVIEW = "候选方案审查"
-FORMAT_REPLY = "整理输出结果"
 PROPOSALS = {
     "literature_lookup": "核对需求解析 → 文献 MCP 的查询和调用策略。",
     "literature_scope": "为指定记录的查询和回包加入记录 ID 范围校验。",
@@ -27,190 +23,6 @@ PROPOSALS = {
     "review_alignment": "用冻结的守门回包复测审查节点，保持逐候选引用一致。",
     "clarification_route": "核对澄清判断到最终回复的输出路径。",
 }
-GATE_OUTCOMES = {"pass": "gate_passed", "reject": "gate_rejected", "needs_review": "gate_pending"}
-
-
-def by_candidate(rows):
-    if not isinstance(rows, list):
-        return None
-    result = {}
-    for row in rows:
-        candidate_id = row.get("candidate_id") if isinstance(row, dict) else None
-        if not isinstance(candidate_id, str) or not candidate_id.strip() or candidate_id in result:
-            return None
-        result[candidate_id] = row
-    return result
-
-
-def node_inputs(nodes, name):
-    inputs = nodes.get(name, {}).get("inputs")
-    if isinstance(inputs, dict):
-        inputs = inputs.get("userFields", inputs)
-    return inputs if isinstance(inputs, dict) else {}
-
-
-def evaluate(run, manifest, expected):
-    evidence = {"run_id": run.name}
-    findings = []
-
-    def note(code, node, detail, status="fail"):
-        findings.append({"code": code, "node": node, "detail": detail, "status": status})
-
-    def result():
-        states = {item["status"] for item in findings}
-        status = "fail" if "fail" in states else "needs_review" if states else "pass"
-        return {"status": status, "findings": findings, "evidence": evidence}
-
-    failure_file = run / "failure_records.jsonl"
-    if failure_file.is_file():
-        evidence["runtime_issues"] = [
-            {key: row.get(key) for key in ("node_name", "failure_type", "error_code")}
-            for row in read_rows(failure_file)
-        ]
-    if manifest.get("capture_error"):
-        note("capture_error", None, manifest["capture_error"], "needs_review")
-        return result()
-    if manifest.get("workflow_status") not in {"success", "succeeded"}:
-        evidence["failure_nodes"] = [
-            row["node_name"] for row in evidence.get("runtime_issues", [])
-        ]
-        note("workflow_failure", None, manifest.get("workflow_status"))
-        return result()
-
-    nodes = list(read_rows(run / "nodes.jsonl"))
-    if not nodes:
-        note("missing_nodes", None, "归档没有节点记录。", "needs_review")
-        return result()
-    executed = {row.get("node_name"): row for row in nodes}
-    evidence["runtime_nodes"] = list(executed)
-    evidence["node_duration_ms"] = {
-        name: row["duration_ms"] for name, row in executed.items() if isinstance(row.get("duration_ms"), int)
-    }
-    requirements = node_fields(nodes, "研究需求解析")
-    reply = node_fields(nodes, "结束", raw=True).get("responseContent")
-    evidence["clarification_needed"] = requirements.get("clarification_needed")
-    if expected["route"] == "clarification":
-        questions = requirements.get("clarification_questions")
-        if (requirements.get("clarification_needed") is not True
-                or set(executed) & {LITERATURE, DESIGN, GATE, REVIEW}
-                or not isinstance(reply, str) or not isinstance(questions, list)
-                or not any(isinstance(q, str) and q.strip() and q in reply for q in questions)):
-            note("clarification_route", "研究需求解析", "应回传澄清问题并停止后续设计链路。")
-        return result()
-
-    if requirements.get("clarification_needed") is not False:
-        note("clarification_route", "研究需求解析", "用例预期继续设计。")
-        return result()
-
-    literature = node_fields(nodes, LITERATURE)
-    records = literature.get("records")
-    status = literature.get("status")
-    query = requirements.get("literature_query")
-    target = expected.get("literature", {})
-    record_id = target.get("record_id")
-    evidence["literature"] = {
-        "query": query, "status": status, "call_id": literature.get("call_id"),
-        "tool_version": literature.get("tool_version"), "dataset_version": literature.get("dataset_version"),
-        "elapsed_ms": literature.get("elapsed_ms"),
-        "record_ids": [row.get("record_id") for row in records if isinstance(row, dict)]
-        if isinstance(records, list) else None,
-    }
-    if (LITERATURE not in executed or not isinstance(query, str) or not query.strip()
-            or not isinstance(records, list) or status not in ("success", "needs_review", "no_evidence")):
-        note("literature_lookup", LITERATURE, {"status": status, "error_code": literature.get("error_code")})
-    else:
-        if record_id and record_id.casefold() not in query.casefold():
-            note("literature_scope", "研究需求解析", f"查询丢失指定记录 {record_id}。")
-        if target.get("status", status) != status:
-            note("literature_scope", LITERATURE, f"文献状态 {status}，预期 {target['status']}。")
-        if status == "no_evidence":
-            gaps = literature.get("missing_evidence")
-            if records or not isinstance(gaps, list) or not gaps or (
-                record_id and not any(isinstance(gap, str) and record_id.casefold() in gap.casefold() for gap in gaps)
-            ):
-                note("literature_scope", LITERATURE, "无证据结果应返回空记录和对应的证据缺口。")
-        elif target.get("source_doi") and not any(
-            isinstance(row, dict) and row.get("record_id") == record_id
-            and row.get("source_doi") == target["source_doi"] and row.get("review_required") is True
-            for row in records
-        ):
-            note("literature_scope", LITERATURE, "缺少指定记录的 DOI 或待复核标记。")
-
-        handoff = {f"literature_{key}": literature.get(key) for key in ("status", "records", "missing_evidence")}
-        for name in (DESIGN, REVIEW):
-            inputs = node_inputs(executed, name)
-            if not handoff.keys() <= inputs.keys():
-                note("literature_handoff", name, "归档缺少下游文献状态、记录或缺口字段。", "needs_review")
-            elif any(inputs[key] != value for key, value in handoff.items()):
-                note("literature_handoff", name, "收到的文献状态、记录或缺口与工具输出不一致。")
-
-    candidates = by_candidate(node_fields(nodes, DESIGN).get("candidate_list"))
-    if not candidates or len(candidates) != expected["candidate_count"]:
-        note("candidate_composition", DESIGN, "候选数量或 ID 不符合预期。")
-        return result()
-    allowed = set(expected["allowed_elements"])
-    evidence["compositions"] = {key: row.get("composition_wt_pct") for key, row in candidates.items()}
-    invalid = [key for key, value in evidence["compositions"].items() if not check_composition(value, allowed)]
-    if invalid:
-        note("candidate_composition", DESIGN, {"invalid_candidate_ids": invalid})
-
-    gate = node_fields(nodes, GATE)
-    decisions = by_candidate(gate.get("candidate_decisions"))
-    checks = gate.get("physical_checks")
-    if decisions is None or decisions.keys() != candidates.keys():
-        note("gate_alignment", GATE, "逐候选判定与候选 ID 无法完整对应。")
-    else:
-        states = {key: row.get("status") for key, row in decisions.items()}
-        evidence["gate_states"] = states
-        evidence["all_passed"] = gate.get("all_passed")
-        evidence["gate_version"] = gate.get("version")
-        evidence["gate_scenario"] = gate.get("scenario_id")
-        rejection = [key for key, state in states.items() if state == "reject"]
-        if rejection:
-            note("gate_rejected", GATE, {"candidate_ids": rejection})
-        valid_states = all(isinstance(state, str) and state in GATE_OUTCOMES for state in states.values())
-        if not valid_states or gate.get("all_passed") is not all(state == "pass" for state in states.values()):
-            note("gate_alignment", GATE, "逐候选状态与汇总结果不一致或缺失。")
-        if valid_states:
-            outcomes_path = run / "scientific_outcomes.jsonl"
-            if outcomes_path.is_file():
-                archived = sorted((str(row.get("candidate_id")), row["outcome_type"])
-                                  for row in read_rows(outcomes_path)
-                                  if row.get("outcome_type") in GATE_OUTCOMES.values())
-                evidence["archived_gate_outcomes"] = archived
-                if archived != sorted((key, GATE_OUTCOMES[state]) for key, state in states.items()):
-                    note("archive_gate_mapping", GATE, "科研结果归档与逐候选守门状态不一致。")
-            else:
-                note("archive_gate_mapping", GATE, "缺少科研结果归档。", "needs_review")
-        for name in (REVIEW, FORMAT_REPLY):
-            received = by_candidate(node_inputs(executed, name).get("candidate_decisions"))
-            if received is None:
-                note("review_alignment", name, "归档缺少下游的逐候选守门判定。", "needs_review")
-            elif {key: row.get("status") for key, row in received.items()} != states:
-                note("review_alignment", name, "收到的逐候选守门状态与工具输出不一致。")
-        review = node_fields(nodes, REVIEW)
-        evidence["review_status"] = review.get("review_status")
-        reviews = by_candidate(review.get("candidate_reviews"))
-        if reviews is None or reviews.keys() != candidates.keys():
-            note("review_alignment", REVIEW, "审查和候选 ID 无法完整对应。")
-        if not isinstance(reply, str) or any(key not in reply for key in candidates):
-            note("review_alignment", "结束", "最终回复缺少候选编号。")
-
-    if isinstance(checks, list):
-        evidence["physical_checks"] = [
-            {key: row.get(key) for key in ("candidate_id", "rule_id", "status")}
-            for row in checks if isinstance(row, dict)
-        ]
-        composition_checks = by_candidate([
-            row for row in checks if isinstance(row, dict) and row.get("rule_id") == "COMPOSITION"
-        ])
-        if not composition_checks or composition_checks.keys() != candidates.keys() or any(
-            row.get("status") != "pass" for row in composition_checks.values()
-        ):
-            note("gate_alignment", GATE, "基础成分规则缺失或未通过。")
-    else:
-        note("gate_alignment", GATE, "缺少逐规则检查结果。", "needs_review")
-    return result()
 
 
 def audit(cases, directory):
@@ -218,12 +30,7 @@ def audit(cases, directory):
     results = {}
     proposals = {}
     for case_id, (run, manifest) in batch.items():
-        try:
-            result = evaluate(run, manifest, cases[case_id]["expected"])
-        except (OSError, ValueError) as exc:
-            result = {"status": "needs_review", "evidence": {"run_id": run.name}, "findings": [
-                {"code": "unreadable_evidence", "node": None, "detail": str(exc), "status": "needs_review"}
-            ]}
+        result = evaluate(run, manifest, cases[case_id]["expected"])
         results[case_id] = result
         for code in {finding["code"] for finding in result["findings"] if finding["status"] == "fail"}:
             if code in PROPOSALS:

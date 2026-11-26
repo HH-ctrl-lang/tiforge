@@ -7,7 +7,8 @@ Harness 读取 [logging 归档](../logging/README.md)，按用例检查已部署
 | 位置                                     | 内容                                                                 |
 | ---------------------------------------- | -------------------------------------------------------------------- |
 | `engine/common.py`                     | 读取用例和归档，校验批次、提取节点字段、检查候选成分格式             |
-| `engine/v00.py`、`engine/v01.py`     | 每个 Harness 版本各自的评测和对照逻辑                                |
+| `evaluate.py`                       | 单次和批量共用的评价器，包含 v00、v01 和异常处理判据                 |
+| `engine/v00.py`、`engine/v01.py`     | 各版本的运行编排、报告及版本对照，调用统一评价器                       |
 | `cases/v00.jsonl`、`cases/v01.jsonl` | 版本对应的默认用例集。每行包含 `case_id`、`inputs`、`expected` |
 | `tests/`                               | 评测逻辑的单元测试，使用模拟归档                                     |
 | `__main__.py`                          | 统一命令入口，子命令选择 Harness 版本                                |
@@ -103,4 +104,4 @@ python -m harness.evaluate --engine v00 --cases harness/cases/v00.jsonl --run lo
 证据明确和预期不符时判失败，缺少记录或字段时转待复核。
 正常完成的分支默认要求 `succeeded`。需要验证工作流按规定停止时，可在该用例的
 `expected.workflow_status` 指定 `failed`，仍需通过该用例定义的各项检查。
-用例集须按具体节点实际提供的结构化字段来写。自定义失败分支用例可通过本单次评价命令运行。
+用例集须按具体节点实际提供的结构化字段来写。单次评价和 Harness 批量评测使用同一套判据，两种入口均可用 `--cases` 指定自定义失败分支用例集。

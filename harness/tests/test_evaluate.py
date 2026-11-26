@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
+from harness.engine.v01 import audit
 from harness.evaluate import evaluate_run, load_cases, load_run
 
 
@@ -88,6 +89,26 @@ class IndependentEvaluationTest(unittest.TestCase):
         (self.run_dir / "request.json").write_text(json.dumps(request), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "实际输入"):
             load_run(self.run_dir, cases)
+
+    def test_batch_audit_uses_the_evaluator_for_failure_handling_cases(self):
+        inputs = {"query": "检查指定的候选。"}
+        case_id = self.manifest["case_id"]
+        suite = self.run_dir.parent / "cases.jsonl"
+        suite.write_text(json.dumps(
+            {"case_id": case_id, "inputs": inputs, "expected": self.expected}
+        ), encoding="utf-8")
+        (self.run_dir / "manifest.json").write_text(json.dumps(self.manifest), encoding="utf-8")
+        (self.run_dir / "request.json").write_text(json.dumps(
+            {**self.manifest, "inputs": inputs}
+        ), encoding="utf-8")
+        single_status, single_issues = self.check(self.gate_output(
+            {"candidate_id": "C01", "status": "pass", "rule_id": "COMPOSITION", "reason": "检查完成"}
+        ))
+
+        result = audit(load_cases(suite), self.run_dir.parent)["cases"][case_id]
+        self.assertEqual(result["status"], "fail")
+        self.assertEqual(result["status"], single_status)
+        self.assertEqual([item["detail"] for item in result["findings"]], single_issues)
 
 
 if __name__ == "__main__":

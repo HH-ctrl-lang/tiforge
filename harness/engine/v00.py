@@ -6,63 +6,12 @@ import json
 from pathlib import Path
 
 
-from .common import check_composition, load_batch, load_cases, node_fields, read_rows
+from ..evaluate import evaluate_run as _evaluate_run, load_cases
+from .common import load_batch
 
 
 def evaluate_run(run, manifest, expected):
-    if manifest.get("capture_error"):
-        return "needs_review", ["归档采集失败或不完整。"]
-    if manifest.get("workflow_status") not in ("succeeded", "success"):
-        return "fail", ["工作流未成功完成。"]
-
-    nodes = list(read_rows(run / "nodes.jsonl"))
-    if not nodes:
-        return "needs_review", ["归档没有节点记录。"]
-    requirements = node_fields(nodes, "研究需求解析")
-    if expected["route"] == "clarification":
-        questions = requirements.get("clarification_questions")
-        reply = node_fields(nodes, "结束", raw=True).get("responseContent")
-        if (
-            requirements.get("clarification_needed") is True
-            and isinstance(questions, list)
-            and isinstance(reply, str)
-            and any(
-                isinstance(question, str) and question.strip() and question.strip() in reply
-                for question in questions
-            )
-            and not any(node.get("node_name") == "候选材料设计" for node in nodes)
-        ):
-            return "pass", []
-        return "fail", ["应提出澄清问题并跳过候选设计。"]
-
-    design = node_fields(nodes, "候选材料设计")
-    candidates = design.get("candidate_list")
-    if requirements.get("clarification_needed") is not False:
-        return "fail", ["预期继续设计，实际未确认进入设计分支。"]
-    if not isinstance(candidates, list) or len(candidates) != expected["candidate_count"]:
-        return "fail", ["候选数量不符合用例预期。"]
-
-    allowed = set(expected["allowed_elements"])
-    candidate_ids = set()
-    for entry in candidates:
-        candidate_id = entry.get("candidate_id") if isinstance(entry, dict) else None
-        if not isinstance(candidate_id, str) or not candidate_id.strip() or candidate_id in candidate_ids:
-            return "fail", ["候选 ID 缺失或重复。"]
-        candidate_ids.add(candidate_id)
-        if not check_composition(entry.get("composition_wt_pct"), allowed):
-            return "fail", [f"{candidate_id} 的成分格式、元素或总量不符合用例预期。"]
-
-    check = node_fields(nodes, "材料成分约束检查")
-    checked = check.get("checked_candidates")
-    if not isinstance(checked, list) or len(checked) != len(candidate_ids):
-        return "fail", ["成分检查记录与候选数量不一致。"]
-    checked_ids = {
-        row["candidate_id"] for row in checked
-        if isinstance(row, dict) and isinstance(row.get("candidate_id"), str) and row.get("passed") is True
-    }
-    if check.get("all_passed") is not True or checked_ids != candidate_ids:
-        return "fail", ["成分守门未通过或检查结果与候选 ID 不一致。"]
-    return "pass", []
+    return _evaluate_run(run, manifest, expected, engine="v00")
 
 
 def compare(cases, baseline_dir, candidate_dir, target_case, change):
