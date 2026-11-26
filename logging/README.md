@@ -98,7 +98,7 @@ python .\run_and_archive.py --cases .\cases\cases_multiscenario.jsonl
 | `run_diagnostics.jsonl`、`failure_records.jsonl` | 运行诊断和异常记录                           |
 | `scientific_outcomes.jsonl`                        | 从节点输出提取的科研结果                     |
 
-归档版本默认从 `config/config.json` 读取。比较基线和改进版时，用同一份批量用例分别调用两个版本的实际部署端点。切换调用地址后，同时更新版本配置，或运行时用 `--workflow-version` 和 `--harness-version` 记录本次版本。版本参数只设置归档标签。
+项目名称、工作流版本、Harness 版本和日志格式版本等默认从仓库根目录的 [config.json](../config.json) 读取。本机 Runtime 地址和凭据存放在 `logging/config/runtime.local.json`。比较基线和改进版时，用同一份批量用例分别调用两个实际部署端点。切换调用地址后更新版本配置，或用 `--workflow-version` 和 `--harness-version` 覆盖本次归档标签。
 
 ## 5. v08 工作流的日志覆盖
 

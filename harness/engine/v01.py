@@ -1,9 +1,13 @@
 """Audit TiForge development runs and compare revisions against the same evidence checks."""
 
 import argparse
+from datetime import datetime
 from hashlib import sha256
 import json
 from pathlib import Path
+import subprocess
+import sys
+from uuid import uuid4
 
 from .common import check_composition, load_batch, load_cases, node_fields, read_rows
 
@@ -263,7 +267,11 @@ def compare(baseline, candidate, target_case, target_finding):
 
 def configure(parser):
     parser.add_argument("--cases", type=Path, default=Path(__file__).resolve().parents[1] / "cases" / "v01.jsonl")
-    parser.add_argument("--baseline", "--archive", dest="archive", type=Path, required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--baseline", "--archive", dest="archive", type=Path)
+    source.add_argument("--run-case", help="调用智果运行一条用例并立即评测")
+    source.add_argument("--run-all", action="store_true", help="调用智果运行全部用例并立即评测")
+    parser.add_argument("--workflow-version", help="直接运行时覆盖项目根目录 config.json 的工作流版本")
     parser.add_argument("--candidate", type=Path, help="可选的独立候选版本归档")
     parser.add_argument("--target-case", help="对照时指定目标用例")
     parser.add_argument("--target-finding", help="对照时指定基线报告中的目标问题代码")
@@ -272,11 +280,41 @@ def configure(parser):
 
 def run(args, parser):
     comparison_args = (args.candidate, args.target_case, args.target_finding)
+    run_live = args.run_all or args.run_case is not None
+    if run_live:
+        if any(comparison_args):
+            parser.error("--run-case 和 --run-all 仅评估本次运行。")
+    elif args.workflow_version is not None:
+        parser.error("--workflow-version 仅适用于 --run-case 或 --run-all。")
     if any(comparison_args) and not all(comparison_args):
         parser.error("对照时需要同时提供 --candidate、--target-case 和 --target-finding。")
     try:
         cases = load_cases(args.cases)
-        report = audit(cases, args.archive)
+        archive = args.archive
+        if args.run_case is not None:
+            if args.run_case not in cases:
+                raise ValueError(f"用例文件中找不到 {args.run_case!r}。")
+            cases = {args.run_case: cases[args.run_case]}
+        if run_live:
+            runner = Path(__file__).resolve().parents[2] / "logging" / "run_and_archive.py"
+            batch_name = f"harness-v01-{datetime.now():%Y%m%d-%H%M%S}-{uuid4().hex[:12]}"
+            archive = runner.parent / "archive" / batch_name
+            archive.mkdir(parents=True)
+            command = [
+                sys.executable, "-u", "-B", str(runner), "--cases", str(args.cases),
+                "--harness-version", "v01", "--archive-dir", str(archive),
+            ]
+            if args.run_case is not None:
+                command.extend(["--case-id", args.run_case])
+            if args.workflow_version is not None:
+                command.extend(["--workflow-version", args.workflow_version])
+            outcome = subprocess.run(command, stdout=sys.stderr)
+            # Logging returns 1 for a diagnosed anomaly. Its archive can still be evaluated.
+            if outcome.returncode not in (0, 1):
+                return outcome.returncode
+        report = audit(cases, archive)
+        if run_live:
+            report["archive_directory"] = str(archive)
         if args.candidate:
             report = compare(report, audit(cases, args.candidate), args.target_case, args.target_finding)
     except (OSError, ValueError) as exc:

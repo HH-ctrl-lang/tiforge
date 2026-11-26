@@ -12,6 +12,7 @@ from scripts.runtime_api import DEFAULT_QUERY, capture_events, read_credentials
 
 
 BASE_DIR = Path(__file__).resolve().parent
+PROJECT_CONFIG = BASE_DIR.parent / "config.json"
 
 
 def load_cases(path):
@@ -74,20 +75,20 @@ def main():
     cases_input = parser.add_mutually_exclusive_group()
     cases_input.add_argument("--query", help="单次运行使用的自然语言输入")
     cases_input.add_argument("--cases", type=Path, help="包含 case_id 和 inputs 的 JSONL 用例文件")
-    parser.add_argument("--case-id", help="单次运行的用例标识")
-    parser.add_argument("--workflow-version", help="覆盖 config/config.json 中的工作流版本")
-    parser.add_argument("--harness-version", help="覆盖 config/config.json 中的 Harness 版本")
+    parser.add_argument("--case-id", help="选择用例文件中的一条，或为单次查询指定标识")
+    parser.add_argument("--workflow-version", help="覆盖项目根目录 config.json 中的工作流版本")
+    parser.add_argument("--harness-version", help="覆盖项目根目录 config.json 中的 Harness 版本")
     parser.add_argument("--archive-dir", type=Path, default=BASE_DIR / "archive")
     args = parser.parse_args()
-    if args.cases and args.case_id:
-        parser.error("--case-id 仅适用于单次运行。")
-
     try:
-        config = json.loads((BASE_DIR / "config" / "config.json").read_text(encoding="utf-8-sig"))
+        config = json.loads(PROJECT_CONFIG.read_text(encoding="utf-8-sig"))
+        if not isinstance(config, dict):
+            raise ValueError(f"{PROJECT_CONFIG} 必须是 JSON 对象。")
         for name in ("workflow_version", "harness_version"):
-            value = getattr(args, name) or config.get(name)
+            override = getattr(args, name)
+            value = config.get(name) if override is None else override
             if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"请在 config/config.json 或命令行中填写 {name}。")
+                raise ValueError(f"请在 {PROJECT_CONFIG} 或命令行中填写 {name}。")
             config[name] = value.strip()
         config = {
             name: config[name] for name in (
@@ -97,6 +98,10 @@ def main():
         }
         if args.cases:
             cases = load_cases(args.cases)
+            if args.case_id is not None:
+                cases = [case for case in cases if case[0] == args.case_id]
+                if not cases:
+                    raise ValueError(f"用例文件中找不到 {args.case_id!r}。")
         else:
             query = DEFAULT_QUERY if args.query is None else args.query
             if not query.strip():

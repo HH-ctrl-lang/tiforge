@@ -1,0 +1,29 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v06",
+  "workflow_version": "v08",
+  "harness_version": "v01",
+  "case_id": "industrial-cost",
+  "session_id": "91cae4c1-3d66-4fda-826d-5f59427a3e36",
+  "request_id": "a6bd0a83-0d0b-4cdf-940e-aa9952fac89d",
+  "requested_at": "2026-11-26T17:38:14.687271+08:00",
+  "input_file": "request.json",
+  "run_id": "tf-20261126-173814-a70411910e6c",
+  "archived_at": "2026-11-26T17:39:30.105973+08:00",
+  "source_file": "raw_events.jsonl",
+  "event_count": 24,
+  "node_count": 5,
+  "workflow_status": "failed",
+  "capture_error": {
+    "kind": "request_error",
+    "exception_type": "ChunkedEncodingError"
+  },
+  "raw_events_file": "raw_events.jsonl",
+  "normalized_run_file": "runs.jsonl",
+  "normalized_node_file": "nodes.jsonl",
+  "normalized_event_file": "events.jsonl",
+  "diagnostic_status": "failed",
+  "failure_count": 2,
+  "scientific_outcome_count": 0
+}

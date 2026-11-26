@@ -1,0 +1,1 @@
+{"run_id": "tf-20261126-173814-a70411910e6c", "start_time": 1795685897142, "end_time": null, "duration_ms": null, "status": "failed", "node_count": 5, "event_count": 24, "created_at": "2026-11-26T17:39:29.584715", "capture_error": {"kind": "request_error", "exception_type": "ChunkedEncodingError"}}
