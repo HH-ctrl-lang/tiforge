@@ -3,8 +3,11 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 
+from .tool_results import get_tool_result
 
-SCRATCH_DIR = Path(__file__).resolve().parents[1] / "scratch"
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+SCRATCH_DIR = BASE_DIR / "scratch"
 INPUT_FILE = SCRATCH_DIR / "runtime_smoke_events.jsonl"
 
 OUTPUT_DIR = SCRATCH_DIR / "normalized"
@@ -33,6 +36,23 @@ def load_events(path=INPUT_FILE):
                 print(f"第 {index} 行 JSON 解析失败：{e}")
 
     return events
+
+
+def iter_run_dirs(root):
+    """Find runs in both the archive root and nested batch directories."""
+    if (root / "runs.jsonl").is_file():
+        yield root
+        return
+    for run_file in sorted(root.rglob("runs.jsonl")):
+        yield run_file.parent
+
+
+def archive_reference(run_dir):
+    """Use a logging-relative reference for local archives and an absolute one otherwise."""
+    path = run_dir.resolve()
+    if path.is_relative_to(BASE_DIR):
+        path = path.relative_to(BASE_DIR)
+    return path.as_posix()
 
 
 def get_data(event):
@@ -159,6 +179,10 @@ def build_nodes(events, run_id):
         record = nodes[node_id]
 
         record["event_count"] += 1
+
+        for field in ("inputs", "outputs", "error"):
+            if data.get(field) or (record[field] is None and data.get(field) is not None):
+                record[field] = data[field]
 
         # -------------------------------------------------
         # 基本信息
@@ -296,12 +320,12 @@ def build_nodes(events, run_id):
         # 输入输出
         # -------------------------------------------------
 
-        if data.get("inputs") is not None:
+        if data.get("inputs") or (record["inputs"] is None and data.get("inputs") is not None):
             record["inputs"] = data.get(
                 "inputs"
             )
 
-        if data.get("outputs") is not None:
+        if data.get("outputs") or (record["outputs"] is None and data.get("outputs") is not None):
             record["outputs"] = data.get(
                 "outputs"
             )
@@ -310,7 +334,7 @@ def build_nodes(events, run_id):
         # 错误
         # -------------------------------------------------
 
-        if data.get("error") is not None:
+        if data.get("error") or (record["error"] is None and data.get("error") is not None):
             record["error"] = data.get(
                 "error"
             )
@@ -339,6 +363,9 @@ def build_nodes(events, run_id):
     # =====================================================
 
     for record in nodes.values():
+        tool_result = get_tool_result(record)
+        if tool_result:
+            record["tool_result"] = tool_result
 
         start = record["start_time"]
         end = record["end_time"]

@@ -1,8 +1,12 @@
 
+import argparse
 import json
 import uuid
 from datetime import datetime
 from pathlib import Path
+
+from .normalize_runtime_events import archive_reference, iter_run_dirs
+from .tool_results import get_tool_result
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -145,7 +149,7 @@ def classify_failure(status, error):
     return None, None, False
 
 
-def create_failure_record(run_id, node, archive_name):
+def create_failure_record(run_id, node, archive_ref):
     """生成单条节点失败记录。"""
 
     status = normalize_status(node.get("status"))
@@ -154,6 +158,14 @@ def create_failure_record(run_id, node, archive_name):
     failure_type, severity, confirmed_failure = (
         classify_failure(status, error)
     )
+    tool_result = node.get("tool_result") or get_tool_result(node)
+    tool_status = normalize_status(tool_result.get("status")) if tool_result else ""
+    if tool_result and not confirmed_failure and (
+        tool_status in FAILED_STATUSES | TIMEOUT_STATUSES | CANCELLED_STATUSES
+        or tool_result.get("transport_succeeded") is False
+    ):
+        failure_type, severity = "tool_reported_error", "error"
+        error = tool_result
 
     if failure_type is None:
         return None, False, False
@@ -181,10 +193,13 @@ def create_failure_record(run_id, node, archive_name):
         "end_time": node.get("end_time"),
         "duration_ms": node.get("duration_ms"),
         "evidence_ref": (
-            f"archive/{archive_name}/nodes.jsonl"
+            f"{archive_ref}/nodes.jsonl"
         ),
         "detected_at": datetime.now().isoformat()
     }
+    if tool_result:
+        record["tool_status"] = tool_status
+        record["tool_call_id"] = tool_result.get("call_id")
 
     return record, confirmed_failure, True
 
@@ -193,6 +208,7 @@ def diagnose_archive(archive_path):
     """分析单次 Run 归档。"""
 
     run_id = archive_path.name
+    archive_ref = archive_reference(archive_path)
 
     runs = load_jsonl(
         archive_path / "runs.jsonl"
@@ -218,6 +234,7 @@ def diagnose_archive(archive_path):
     failures = []
     failed_node_count = 0
     error_node_count = 0
+    tool_error_count = 0
 
     for node in nodes:
 
@@ -225,12 +242,14 @@ def diagnose_archive(archive_path):
             create_failure_record(
                 run_id,
                 node,
-                archive_path.name
+                archive_ref
             )
         )
 
         if record is not None:
             failures.append(record)
+            if record["failure_type"] == "tool_reported_error":
+                tool_error_count += 1
 
         if confirmed:
             failed_node_count += 1
@@ -266,7 +285,7 @@ def diagnose_archive(archive_path):
             "end_time": run.get("end_time"),
             "duration_ms": run.get("duration_ms"),
             "evidence_ref": (
-                f"archive/{archive_path.name}/runs.jsonl"
+                f"{archive_ref}/runs.jsonl"
             ),
             "detected_at": datetime.now().isoformat()
         })
@@ -290,6 +309,7 @@ def diagnose_archive(archive_path):
         "node_count": len(nodes),
         "failed_node_count": failed_node_count,
         "error_node_count": error_node_count,
+        "tool_error_count": tool_error_count,
         "diagnostic_status": diagnostic_status,
         "failure_ids": [
             item["failure_id"]
@@ -302,89 +322,26 @@ def diagnose_archive(archive_path):
 
 
 def main():
-
-    print(
-        "========== TiForge 运行异常诊断 v0.5 =========="
-    )
-
-    if not ARCHIVE_DIR.exists():
-        print("[失败] 找不到 archive 目录。")
-        return
-
-    ANALYSIS_DIR.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+    parser = argparse.ArgumentParser(description="重建历史运行诊断汇总。")
+    parser.add_argument("--archive-dir", type=Path, default=ARCHIVE_DIR)
+    parser.add_argument("--output-dir", type=Path, default=ANALYSIS_DIR)
+    args = parser.parse_args()
+    if not args.archive_dir.is_dir():
+        parser.error(f"找不到归档目录：{args.archive_dir}")
 
     diagnostics = []
-    all_failures = []
+    failures = []
+    for run in iter_run_dirs(args.archive_dir):
+        diagnostic, run_failures = diagnose_archive(run)
+        if diagnostic is not None:
+            diagnostics.append(diagnostic)
+            failures.extend(run_failures)
 
-    archive_paths = sorted(
-        path for path in ARCHIVE_DIR.iterdir()
-        if path.is_dir()
-    )
-
-    print(
-        f"\n发现历史 Run 数量：{len(archive_paths)}"
-    )
-
-    for archive_path in archive_paths:
-
-        diagnostic, failures = diagnose_archive(
-            archive_path
-        )
-
-        if diagnostic is None:
-            continue
-
-        diagnostics.append(diagnostic)
-        all_failures.extend(failures)
-
-        print(
-            f"\nRun：{diagnostic['run_id']}"
-        )
-        print(
-            f"状态：{diagnostic['diagnostic_status']}"
-        )
-        print(
-            f"节点数：{diagnostic['node_count']}"
-        )
-        print(
-            f"确认失败节点数："
-            f"{diagnostic['failed_node_count']}"
-        )
-        print(
-            f"异常节点数："
-            f"{diagnostic['error_node_count']}"
-        )
-
-    save_jsonl(
-        FAILURE_FILE,
-        all_failures
-    )
-
-    save_jsonl(
-        DIAGNOSTIC_FILE,
-        diagnostics
-    )
-
-    print("\n========== 诊断汇总 ==========")
-
-    print(
-        f"分析 Run 数量：{len(diagnostics)}"
-    )
-    print(
-        f"失败记录数量：{len(all_failures)}"
-    )
-
-    print(
-        f"\n运行诊断文件：{DIAGNOSTIC_FILE.resolve()}"
-    )
-    print(
-        f"失败记录文件：{FAILURE_FILE.resolve()}"
-    )
-
-    print("\n========== 诊断完成 ==========")
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    save_jsonl(args.output_dir / DIAGNOSTIC_FILE.name, diagnostics)
+    save_jsonl(args.output_dir / FAILURE_FILE.name, failures)
+    print(f"已汇总 {len(diagnostics)} 次运行、{len(failures)} 条异常记录。")
+    print(f"汇总目录：{args.output_dir.resolve()}")
 
 
 if __name__ == "__main__":

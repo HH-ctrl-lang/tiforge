@@ -100,12 +100,20 @@ python .\run_and_archive.py --cases .\cases\cases_multiscenario.jsonl
 
 归档版本默认从 `config/config.json` 读取。比较基线和改进版时，用同一份批量用例分别调用两个版本的实际部署端点。切换调用地址后，同时更新版本配置，或运行时用 `--workflow-version` 和 `--harness-version` 记录本次版本。版本参数只设置归档标签。
 
-## 5. 诊断与分析
+## 5. v08 工作流的日志覆盖
 
-在日志目录运行。前两条从 `archive/` 的所有 Run 重建 `analysis/` 汇总，最后一条运行模拟诊断测试。
+- `nodes.jsonl` 记录开始、需求解析、判断、澄清或设计分支、审查、整理和结束节点实际发生的输入、输出和耗时。MCP 节点额外带 `tool_result`，记录工具业务状态、调用 ID、版本和错误字段。原始工具回包仍保留在节点输出中。
+- `run_diagnostics.jsonl` 保留平台工作流状态，并记录诊断状态和工具错误数。平台返回成功、MCP 回包返回 `status=error` 时，诊断为 `needs_review`，原因写入 `failure_records.jsonl`，类型为 `tool_reported_error`。例如空文献查询会保留错误码 `EMPTY_QUERY`。文献查无证据和材料待复核属于正常业务结果。
+- `scientific_outcomes.jsonl` 提取文献命中、文献待复核、文献无证据，以及候选、守门和审查结果。文献记录保留数据集版本、记录 ID 和证据缺口。物理守门待复核记录为 `gate_pending`。原始调用和从已有原始事件归档时使用同一套处理。
+- 日志记录实际发生的事实。是否符合某条测试的预期，由 [Harness](../harness/README.md) 判定。
+
+## 6. 重建历史汇总
+
+在 `logging/` 目录下运行。默认递归读取 `archive/` 中的单次和批量 Run，写入 `analysis/`。也可以用 `--archive-dir` 指向 Run 或批次目录，配合 `--output-dir` 指定新的汇总位置。
 
 ```powershell
-python -m scripts.diagnose_runs
-python -m scripts.generate_scientific_outcomes
-python -m tests.test_diagnosis_rules
+python -B -m scripts.diagnose_runs
+python -B -m scripts.generate_scientific_outcomes
+python -B -m tests.test_diagnosis_rules
+python -B -m unittest tests.test_v08_archive -v
 ```

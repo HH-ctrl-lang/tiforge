@@ -1,0 +1,23 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v0.6",
+  "workflow_version": "v06",
+  "harness_version": "v0.0",
+  "case_id": "industrial-cost-constraint",
+  "session_id": "c630f7ca-5222-4dd6-9e4d-3262f241d37c",
+  "request_id": "bbe7a1d0-a7ce-407a-bcdd-58dcb7be31b0",
+  "requested_at": "2026-11-23T18:31:29.536649+08:00",
+  "input_file": "request.json",
+  "run_id": "tf-20261123-183129-2213a2ca798b",
+  "archived_at": "2026-11-23T18:32:22.813576+08:00",
+  "source_file": "raw_events.jsonl",
+  "event_count": 50,
+  "node_count": 8,
+  "workflow_status": "succeeded",
+  "capture_error": null,
+  "raw_events_file": "raw_events.jsonl",
+  "normalized_run_file": "runs.jsonl",
+  "normalized_node_file": "nodes.jsonl",
+  "normalized_event_file": "events.jsonl"
+}

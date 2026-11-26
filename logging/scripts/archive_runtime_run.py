@@ -7,6 +7,8 @@ import shutil
 import sys
 from uuid import uuid4
 
+from .diagnose_runs import diagnose_archive
+from .generate_scientific_outcomes import process_archive
 from .normalize_runtime_events import build_nodes, build_run, load_events, normalize_events, save_jsonl
 
 
@@ -41,6 +43,12 @@ def archive_run(run_dir, metadata, capture_error=None, source_file="raw_events.j
     save_jsonl(run_dir / "runs.jsonl", [run])
     save_jsonl(run_dir / "nodes.jsonl", nodes)
     save_jsonl(run_dir / "events.jsonl", normalize_events(events, run_id))
+    diagnostic, failures = diagnose_archive(run_dir)
+    outcomes = process_archive(run_dir)
+    save_jsonl(run_dir / "run_diagnostics.jsonl", [diagnostic])
+    save_jsonl(run_dir / "failure_records.jsonl", failures)
+    save_jsonl(run_dir / "scientific_outcomes.jsonl", outcomes)
+
     manifest = {
         **metadata,
         "run_id": run_id,
@@ -54,6 +62,9 @@ def archive_run(run_dir, metadata, capture_error=None, source_file="raw_events.j
         "normalized_run_file": "runs.jsonl",
         "normalized_node_file": "nodes.jsonl",
         "normalized_event_file": "events.jsonl",
+        "diagnostic_status": diagnostic["diagnostic_status"],
+        "failure_count": len(failures),
+        "scientific_outcome_count": len(outcomes),
     }
     save_json(run_dir / "manifest.json", manifest)
     return manifest

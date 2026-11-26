@@ -1,0 +1,1 @@
+{"case_id": "industrial-cost-constraint", "inputs": {"query": "为一般工业结构件设计两个钛合金候选，主要目标是降低合金元素成本。仅允许使用Ti、Al、V、Fe，明确禁止Ta和Nb。Al和V均允许使用，是否添加按方案决定。成分使用wt.%，Ti为基体，成分总和为100%。请说明各候选的定性成本取舍。当前没有元素价格和性能实测数据，请将成本和性能结论标为待验证。"}, "expected": {"route": "design", "candidate_count": 2, "allowed_elements": ["Ti", "Al", "V", "Fe"]}}

@@ -1,8 +1,12 @@
 
+import argparse
 import json
 import uuid
 from datetime import datetime
 from pathlib import Path
+
+from .normalize_runtime_events import archive_reference, iter_run_dirs
+from .tool_results import get_user_fields
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -53,23 +57,6 @@ def save_jsonl(path, records):
             )
 
 
-def get_user_fields(node):
-    """提取 AgentArts 节点业务输出。"""
-
-    outputs = node.get("outputs")
-
-    if not isinstance(outputs, dict):
-        return {}
-
-    user_fields = outputs.get("userFields")
-
-    if isinstance(user_fields, dict):
-        return user_fields
-
-    # 兼容没有 userFields 包装的结构
-    return outputs
-
-
 def find_node(nodes, node_name):
     """根据节点名称查找节点。"""
 
@@ -89,7 +76,7 @@ def create_outcome(
     outcome_status,
     evidence_field,
     description,
-    archive_name,
+    archive_ref,
     evidence_node_id
 ):
     """创建标准化科研结果记录。"""
@@ -114,7 +101,7 @@ def create_outcome(
         "description": description,
 
         "evidence_ref": (
-            f"archive/{archive_name}/nodes.jsonl"
+            f"{archive_ref}/nodes.jsonl"
             f"#node_id={evidence_node_id}"
         ),
 
@@ -122,10 +109,39 @@ def create_outcome(
     }
 
 
+def extract_literature(run_id, node, archive_ref):
+    fields = get_user_fields(node)
+    status = fields.get("status")
+    if status not in ("success", "needs_review", "no_evidence"):
+        return None
+    outcome_type = {
+        "success": "literature_evidence",
+        "needs_review": "literature_pending",
+        "no_evidence": "literature_no_evidence",
+    }[status]
+    output = node["outputs"]
+    prefix = "outputs.userFields" if isinstance(output.get("userFields"), dict) else "outputs"
+    outcome = create_outcome(
+        run_id=run_id, candidate_id="", outcome_type=outcome_type, stage="literature",
+        outcome_status=status, evidence_field=f"{prefix}.status",
+        description=fields.get("query") or "", archive_ref=archive_ref, evidence_node_id=node.get("node_id"),
+    )
+    records = fields.get("records")
+    outcome.update(
+        call_id=fields.get("call_id"),
+        dataset_version=fields.get("dataset_version"),
+        record_ids=[row["record_id"] for row in records if isinstance(row, dict) and row.get("record_id")]
+        if isinstance(records, list) else None,
+        missing_evidence=fields.get("missing_evidence"),
+    )
+    return outcome
+
+
 def process_archive(archive_path):
     """提取一次运行中的科研结果。"""
 
     run_id = archive_path.name
+    archive_ref = archive_reference(archive_path)
 
     nodes = load_jsonl(
         archive_path / "nodes.jsonl"
@@ -151,6 +167,11 @@ def process_archive(archive_path):
     )
 
     outcomes = []
+    literature = find_node(nodes, "文献知识提取")
+    if literature:
+        outcome = extract_literature(run_id, literature, archive_ref)
+        if outcome:
+            outcomes.append(outcome)
 
     # =====================================================
     # 一、候选材料设计结果
@@ -199,7 +220,7 @@ def process_archive(archive_path):
                         "候选材料方案已生成。"
                         "该记录不代表材料性能已经验证。"
                     ),
-                    archive_name=archive_path.name,
+                    archive_ref=archive_ref,
                     evidence_node_id=(
                         design_node.get("node_id")
                     )
@@ -225,7 +246,7 @@ def process_archive(archive_path):
                         "候选列表为空，且上游记录了缺失信息；"
                         "需要结合缺失信息确认是否属于主动阻断。"
                     ),
-                    archive_name=archive_path.name,
+                    archive_ref=archive_ref,
                     evidence_node_id=(
                         design_node.get("node_id")
                     )
@@ -240,49 +261,51 @@ def process_archive(archive_path):
         checker_node
     ) if checker_node else {}
 
-    checked_candidates = checker_fields.get(
-        "checked_candidates",
-        []
-    )
+    # 只有旧归档缺少三态判定字段时，才沿用布尔值。
+    has_decisions = "candidate_decisions" in checker_fields
+    result_field = "candidate_decisions" if has_decisions else "checked_candidates"
+    gate_results = checker_fields.get(result_field, [])
+    if not isinstance(gate_results, list):
+        gate_results = []
 
-    if not isinstance(checked_candidates, list):
-        checked_candidates = []
+    outputs = checker_node.get("outputs") if checker_node else None
+    evidence_prefix = "outputs"
+    if isinstance(outputs, dict) and isinstance(outputs.get("userFields"), dict):
+        evidence_prefix += ".userFields"
 
-    for candidate in checked_candidates:
-
-        candidate_id = candidate.get(
-            "candidate_id",
-            ""
-        )
-
-        passed = candidate.get("passed")
-
-        if passed is True:
-            outcome_type = "gate_passed"
-            outcome_status = "passed"
-
-        elif passed is False:
-            outcome_type = "gate_rejected"
-            outcome_status = "rejected"
-
-        else:
-            # 没有明确布尔结果，不擅自判断通过或拒绝
+    gate_statuses = {
+        "pass": ("gate_passed", "passed"),
+        "reject": ("gate_rejected", "rejected"),
+        "needs_review": ("gate_pending", "needs_review"),
+    }
+    for candidate in gate_results:
+        if not isinstance(candidate, dict):
             continue
+
+        if has_decisions:
+            status = candidate.get("status")
+            reason = candidate.get("reason", "")
+        else:
+            passed = candidate.get("passed")
+            if not isinstance(passed, bool):
+                continue
+            status = "pass" if passed else "reject"
+            reason = candidate.get("issues", "")
+
+        if not isinstance(status, str) or status not in gate_statuses:
+            continue
+        outcome_type, outcome_status = gate_statuses[status]
 
         outcomes.append(
             create_outcome(
                 run_id=run_id,
-                candidate_id=candidate_id,
+                candidate_id=candidate.get("candidate_id", ""),
                 outcome_type=outcome_type,
                 stage="constraint_checker",
                 outcome_status=outcome_status,
-                evidence_field=(
-                    "outputs.userFields.checked_candidates"
-                ),
-                description=str(
-                    candidate.get("issues", "")
-                ),
-                archive_name=archive_path.name,
+                evidence_field=f"{evidence_prefix}.{result_field}",
+                description=str(reason),
+                archive_ref=archive_ref,
                 evidence_node_id=(
                     checker_node.get("node_id")
                 )
@@ -306,6 +329,8 @@ def process_archive(archive_path):
         candidate_reviews = []
 
     for candidate in candidate_reviews:
+        if not isinstance(candidate, dict):
+            continue
 
         candidate_id = candidate.get(
             "candidate_id",
@@ -347,7 +372,7 @@ def process_archive(archive_path):
                 description=str(
                     candidate.get("review_conclusion", "")
                 ),
-                archive_name=archive_path.name,
+                archive_ref=archive_ref,
                 evidence_node_id=(
                     review_node.get("node_id")
                 )
@@ -358,70 +383,21 @@ def process_archive(archive_path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="重建历史科研结果汇总。")
+    parser.add_argument("--archive-dir", type=Path, default=ARCHIVE_DIR)
+    parser.add_argument("--output-dir", type=Path, default=ANALYSIS_DIR)
+    args = parser.parse_args()
+    if not args.archive_dir.is_dir():
+        parser.error(f"找不到归档目录：{args.archive_dir}")
 
-    print(
-        "========== "
-        "TiForge 科研结果提取 v0.6 "
-        "=========="
-    )
+    outcomes = []
+    for run in iter_run_dirs(args.archive_dir):
+        outcomes.extend(process_archive(run))
 
-    ANALYSIS_DIR.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    archive_paths = sorted(
-        [
-            path for path in ARCHIVE_DIR.iterdir()
-            if path.is_dir()
-        ],
-        key=lambda path: path.name
-    )
-
-    print(
-        f"\n发现归档 Run 数量：{len(archive_paths)}"
-    )
-
-    all_outcomes = []
-
-    for archive_path in archive_paths:
-
-        outcomes = process_archive(
-            archive_path
-        )
-
-        all_outcomes.extend(outcomes)
-
-        print(
-            f"\nRun：{archive_path.name}"
-        )
-
-        print(
-            f"科研结果记录：{len(outcomes)}"
-        )
-
-    save_jsonl(
-        OUTPUT_FILE,
-        all_outcomes
-    )
-
-    print("\n========== 提取汇总 ==========")
-
-    print(
-        f"分析 Run 数量：{len(archive_paths)}"
-    )
-
-    print(
-        f"科研结果记录数量：{len(all_outcomes)}"
-    )
-
-    print(
-        f"\n输出文件：{OUTPUT_FILE.resolve()}"
-    )
-
-    print(
-        "\n========== 科研结果提取完成 =========="
-    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output = args.output_dir / OUTPUT_FILE.name
+    save_jsonl(output, outcomes)
+    print(f"已汇总 {len(outcomes)} 条科研结果到 {output.resolve()}。")
 
 
 if __name__ == "__main__":

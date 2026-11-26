@@ -8,9 +8,6 @@ import sys
 from uuid import uuid4
 
 from scripts.archive_runtime_run import archive_run, create_run_dir, save_json
-from scripts.diagnose_runs import diagnose_archive
-from scripts.generate_scientific_outcomes import process_archive
-from scripts.normalize_runtime_events import save_jsonl
 from scripts.runtime_api import DEFAULT_QUERY, capture_events, read_credentials
 
 
@@ -59,22 +56,17 @@ def execute_case(url, key, archive_dir, config, case_id, inputs):
         metadata["session_id"], metadata["request_id"],
     )
     manifest = archive_run(run_dir, {**metadata, "input_file": "request.json"}, capture_error)
-    diagnostic, failures = diagnose_archive(run_dir)
-    outcomes = process_archive(run_dir)
-    save_jsonl(run_dir / "run_diagnostics.jsonl", [diagnostic])
-    save_jsonl(run_dir / "failure_records.jsonl", failures)
-    save_jsonl(run_dir / "scientific_outcomes.jsonl", outcomes)
 
     print(f"归档目录：{run_dir.resolve()}")
     print(
         f"工作流状态：{manifest['workflow_status']}，"
-        f"诊断状态：{diagnostic['diagnostic_status']}，"
+        f"诊断状态：{manifest['diagnostic_status']}，"
         f"事件：{manifest['event_count']}，节点：{manifest['node_count']}，"
-        f"失败记录：{len(failures)}，科研结果：{len(outcomes)}"
+        f"失败记录：{manifest['failure_count']}，科研结果：{manifest['scientific_outcome_count']}"
     )
     if capture_error:
         print(f"采集异常：{capture_error['kind']}")
-    return diagnostic["diagnostic_status"] == "normal", capture_error
+    return manifest["diagnostic_status"] == "normal", capture_error
 
 
 def main():

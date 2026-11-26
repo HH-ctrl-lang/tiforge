@@ -1,48 +1,51 @@
-# TiForge Harness 基线
+# TiForge Harness
 
-Harness 对同一批固定用例比较两个实际部署版本，输出逐用例结果和是否接受改动的建议。智果执行材料设计，`logging/` 负责调用和归档，`harness/` 负责评测与裁决。
+Harness 读取 [logging 归档](../logging/README.md)，按用例检查已部署工作流，输出问题证据和版本对照结果。
 
-## 准备回归
+## 目录结构
 
-先确定目标用例和一项有明确预期的改动，保留基线部署，再发布独立的候选部署。比较期间固定用例、模型、物理守门规则和调用预算。保留改动差异以及实际部署标识。归档里的 `workflow_version` 是运行时填写的标签，需与实际调用的部署对应。
+| 位置 | 内容 |
+| --- | --- |
+| `engine/common.py` | 读取用例和归档，校验批次、提取节点字段、检查候选成分格式 |
+| `engine/v00.py`、`engine/v01.py` | 每个 Harness 版本各自的评测和对照逻辑 |
+| `cases/v00.jsonl`、`cases/v01.jsonl` | 版本对应的默认用例集。每行包含 `case_id`、`inputs`、`expected` |
+| `tests/` | 评测逻辑的单元测试，使用模拟归档 |
+| `__main__.py` | 统一命令入口，子命令选择 Harness 版本 |
 
-[cases.jsonl](cases.jsonl) 含医用、工业和 Nb 冲突三个用例。`inputs` 由日志脚本传给智果，`expected` 由 Harness 读取。准备本次评测时固定整份文件。目标用例应能复现待修问题，其余用例用于检查是否退化。
+`regression.py`、`v01.py` 在目录顶层提供旧命令和导入路径的兼容入口。默认用例集中在 `cases/`。自定义用例可通过 `--cases` 指定。
 
-## 生成两批归档
+## 版本与用途
 
-在 TiForge 仓库根目录执行。按 [日志说明](../logging/README.md) 配置**基线部署**的地址和凭据，再运行第一条测试命令。将版本值改成实际工作流版本。随后切换到**候选部署**，运行第二条。每次比较使用新的输出目录。
+| 版本 | 默认用例 | 检查范围 | 对照结果 |
+| --- | --- | --- | --- |
+| v00 | 3 条，医用、工业、Nb 冲突 | 路由、候选数量和配方、旧版布尔守门 | `accept`、`reject`、`needs_review` |
+| v01 | 4 条，Ti001、Ti999、工业降本、Nb 冲突 | 路由、文献检索与传递、配方、物理守门三态、审查和科研结果归档 | `ready_for_full_regression`、`reject`、`needs_review` |
+
+v08 使用 v01。原 v00 的设计用例需要 `all_passed=true`，新版物理守门待复核会被其判失败。v01 核对基础成分和逐候选守门事实，预期的待复核可以通过结构检查。v01 的修改建议按问题代码查预设规则，由团队据此准备实际改动。
+
+## 运行和对照
+
+以下命令从 TiForge 仓库根目录执行。先把日志调用配置指向实际部署。每次采集使用新的归档目录，`--workflow-version` 和 `--harness-version` 记录本批标签。
 
 ```powershell
-$experiment = Join-Path $env:TEMP ("tiforge-regression-" + [guid]::NewGuid().ToString("N"))
-$baseline = Join-Path $experiment 'baseline'
-$candidate = Join-Path $experiment 'candidate'
-
-python .\logging\run_and_archive.py --cases .\harness\cases.jsonl --workflow-version '实际基线版本' --archive-dir $baseline
-
-# 将日志调用配置切换到候选部署，再运行
-python .\logging\run_and_archive.py --cases .\harness\cases.jsonl --workflow-version '实际候选版本' --archive-dir $candidate
+$baseline = Join-Path $env:TEMP ('tiforge-v08-' + [guid]::NewGuid().ToString('N'))
+python -B .\logging\run_and_archive.py --cases .\harness\cases\v01.jsonl --workflow-version v08 --harness-version v01 --archive-dir $baseline
+python -B -m harness v01 --baseline $baseline
 ```
 
-批量命令可能因某个用例失败返回非零退出码。已生成的运行归档仍可供比较。每批目录必须对每个用例恰好有一次运行。比较前会核对用例 ID、实际输入和版本标签。
+日志脚本遇到异常会继续执行其余用例，并可能返回非零退出码。已生成的归档仍可评测。单批 v01 报告中的 `pass`、`fail`、`needs_review` 是用例结果，整批退出码分别为 0（全通过）、1（有失败）、2（只有证据不足或参数、归档错误）。
 
-## 比较与查看裁决
+有独立候选部署时，用相同用例重新采集到 `$candidate`。比较时固定模型、守门规则、工具及数据版本和预算，并记录实际部署标识。以下是当前工业检索问题的对照示例。
 
 ```powershell
-python -m harness.regression --cases .\harness\cases.jsonl --baseline $baseline --candidate $candidate --target 'nb-conflict-01' --change '修复 Nb 冲突时的澄清输出'
+python -B -m harness v01 --baseline $baseline --candidate $candidate --target-case industrial-cost --target-finding literature_lookup
 ```
 
-将 `--target` 和 `--change` 换成本次实际改动。报告输出为 JSON，包含两侧的版本、Run 路径、逐用例结果、退化用例及用例集指纹。
+目标问题在基线有证据，且候选批次全通过时，可继续跑团队提供的完整固定基准。两侧必须有各自独立的运行，使用同一份用例。
 
-| 结果             | 含义                                                                                 | 退出码 |
-| ---------------- | ------------------------------------------------------------------------------------ | ------ |
-| `accept`       | 目标用例从失败变为通过，候选通过所有固定用例。                                       | 0      |
-| `reject`       | 候选有用例失败，或目标用例没有改善。                                                 | 1      |
-| `needs_review` | 至少一侧证据不足，且没有已确认的候选失败。归档或参数无法比较时也返回 2，并显示错误。 | 2      |
-
-当前评测范围是候选数量、`composition_wt_pct` 的格式与元素和总量、成分守门结果，以及冲突时是否跳过候选生成并向用户返回澄清问题。成分格式沿用 `Ti:80,Nb:20`，用例要求总量为 100 wt.%。`accept` 只覆盖这组结构化检查。成本表述、文献证据和材料性能需要单独评测。团队核对报告后决定是否发布。
-
-运行模块测试：
+评测历史使用 v00 时，两批归档应使用 `cases/v00.jsonl` 采集。
 
 ```powershell
-python -m unittest harness.test_regression -v
+python -B -m harness v00 --baseline $baseline --candidate $candidate --target-case nb-conflict-01 --change '修复 Nb 冲突时的澄清输出'
+python -B -m unittest discover -s harness/tests -v
 ```

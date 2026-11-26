@@ -3,7 +3,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from harness.regression import compare, load_cases
+from harness.engine.common import load_cases
+from harness.engine.v00 import compare
 
 
 class RegressionTest(unittest.TestCase):
@@ -95,7 +96,7 @@ class RegressionTest(unittest.TestCase):
             self.compare_pair()
 
     def test_project_suite_has_three_cases(self):
-        cases = load_cases(Path(__file__).with_name("cases.jsonl"))
+        cases = load_cases(Path(__file__).resolve().parents[1] / "cases" / "v00.jsonl")
         self.assertEqual(set(cases), {
             "biomedical-low-modulus-baseline", "industrial-cost-constraint", "nb-conflict-01",
         })
