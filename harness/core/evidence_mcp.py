@@ -4,12 +4,19 @@ import os
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from .evidence import EvidenceStore, SNAPSHOT
 
 
 def create_server(store, host):
     server = FastMCP("TiForge Evidence", host=host, port=8000, stateless_http=True, json_response=True)
+
+    @server.custom_route("/ping", methods=["GET"])
+    async def ping(_request: Request) -> JSONResponse:
+        # main loads and validates the snapshot before starting the server.
+        return JSONResponse({"status": "Healthy"})
 
     @server.tool()
     def list_runs(case_id: str, workflow_version: str) -> dict:
