@@ -105,3 +105,25 @@ python -m harness.evaluate --engine v00 --cases harness/cases/v00.jsonl --run lo
 正常完成的分支默认要求 `succeeded`。需要验证工作流按规定停止时，可在该用例的
 `expected.workflow_status` 指定 `failed`，仍需通过该用例定义的各项检查。
 用例集须按具体节点实际提供的结构化字段来写。单次评价和 Harness 批量评测使用同一套判据，两种入口均可用 `--cases` 指定自定义失败分支用例集。
+
+## 核对设计理由和文献引证
+
+在固定设计用例的 `expected` 中加 `"semantic_review": true`。先用相同用例和归档生成评价材料，再用独立评测模型或审阅人按材料中的两项判据逐候选判断。模型可接收标准输入或手动导入 JSON；当前命令在本地读取归档。归档每个候选的设计理由、审查内容、配方、守门结果和检索到的文献字段均带有定位信息。
+
+```sh
+python -m harness.semantic --cases cases.jsonl --run path/to/run > packet.json
+```
+
+有固定的模型适配器时，可在命令末尾加 `--judge <可执行程序> [参数...]`。适配器从标准输入读取完整 JSON，返回评语 JSON 到标准输出。命令返回成功后保存输出；解析失败、运行超时或指纹错误时退出码为 2。省略此参数只导出材料。模型选择和人工校准由评测方确定。
+
+将独立评语保存为该次归档下的 `semantic_review.json`，再按原命令执行单条或批量评价。评语需附对应材料的指纹、评价者或模型版本，以及每个候选的两项判断。下列为单项结构示意，实测时替换为实际引文和定位，并填写另一项 `reasoning`。
+
+```json
+{"packet_sha256":"材料中的指纹","reviewer":"评价者或固定模型版本","judgments":[
+  {"candidate_id":"C01","criterion":"citation","status":"pass","reason":"所引记录与结论对应同一试样和实测指标。",
+   "claim_field":"design_rationale","claim_quote":"候选结论的原句",
+   "source":"literature/0/observation","evidence_quote":"文献记录中支持结论的原句"}
+]}
+```
+
+程序校验候选、指纹、引用字段、逐字引文和文献标识。文献未返回、引文找不到或评语不全时，该项记为待复核。在同一条归档上，已确认的问题优先于待复核，单项通过不能覆盖其他失败。每批比较固定用例、评价者、判据和来源版本。结构化引用核验配合语义判断使用，评语是否正确仍需用人工标注样本校准。

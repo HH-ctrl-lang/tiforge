@@ -5,10 +5,11 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
+from . import semantic
 from .engine import common
 from .engine.common import check_composition, load_run, node_fields, read_rows
 
-EVALUATION_VERSION = "2"
+EVALUATION_VERSION = "3"
 FAILURE_TYPES = {
     "hard_constraint_violation",
     "out_of_domain",
@@ -26,6 +27,9 @@ FORMAT_REPLY = "整理输出结果"
 GATE_OUTCOMES = {"pass": "gate_passed", "reject": "gate_rejected", "needs_review": "gate_pending"}
 
 def validate_expected(expected, case_id):
+    if "semantic_review" in expected and (type(expected["semantic_review"]) is not bool or
+                                         (expected["semantic_review"] and expected.get("route") != "design")):
+        raise ValueError(f"{case_id} 的 semantic_review 须为布尔值，仅设计用例可启用。")
     if expected.get("route") != "failure_handling":
         return common.validate_expected(expected, case_id)
     validate_failure_checks(expected.get("checks"), case_id)
@@ -371,8 +375,20 @@ def evaluate_archive(run, manifest, expected, engine="v01"):
             return _report(status, "failure_handling", issues, evidence)
         if engine == "v00":
             status, issues = _evaluate_v00(nodes, expected)
-            return _report(status, "structural_check", issues, evidence)
-        return _evaluate_v01(run, nodes, expected, evidence)
+            result = _report(status, "structural_check", issues, evidence)
+        else:
+            result = _evaluate_v01(run, nodes, expected, evidence)
+        if expected.get("semantic_review"):
+            try:
+                packet = semantic.packet_for(run, nodes, expected)
+            except ValueError as exc:
+                result["findings"].append({"status": "needs_review", "code": "semantic_review",
+                                           "node": DESIGN, "detail": str(exc)})
+                if result["status"] == "pass":
+                    result["status"] = "needs_review"
+            else:
+                semantic.attach(result, run, packet)
+        return result
     except (OSError, ValueError) as exc:
         return _report("needs_review", "unreadable_evidence", [str(exc)], evidence)
 
@@ -400,7 +416,14 @@ def main():
         cases = load_cases(args.cases)
         manifest = load_run(args.run, cases)
         case_id = manifest["case_id"]
-        status, issues = evaluate_run(args.run, manifest, cases[case_id]["expected"], args.engine)
+        expected = cases[case_id]["expected"]
+        semantic_result = None
+        if expected.get("semantic_review"):
+            result = evaluate_archive(args.run, manifest, expected, args.engine)
+            status, issues = result["status"], result["findings"]
+            semantic_result = result["evidence"].get("semantic")
+        else:
+            status, issues = evaluate_run(args.run, manifest, expected, args.engine)
     except (OSError, ValueError) as exc:
         report = {"status": "needs_review", "issues": [str(exc)]}
     else:
@@ -414,6 +437,8 @@ def main():
             "status": status,
             "issues": issues,
         }
+        if semantic_result is not None:
+            report["semantic"] = semantic_result
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return {"pass": 0, "fail": 1, "needs_review": 2}[report["status"]]
 
