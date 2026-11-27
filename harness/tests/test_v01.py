@@ -54,7 +54,7 @@ class DevelopmentHarnessTest(unittest.TestCase):
         self.assertEqual(result["evidence"]["gate_states"], {"C01": "needs_review"})
 
     def test_independent_evaluator_uses_v01_for_pending_candidate(self):
-        from harness.evaluate import evaluate_run
+        from harness.core.evaluate import evaluate_run
 
         self.evaluate_run()
         self.assertEqual(evaluate_run(self.run, self.manifest, self.expected), ("pass", []))

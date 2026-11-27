@@ -9,8 +9,8 @@ import subprocess
 import sys
 from uuid import uuid4
 
-from ..evaluate import DESIGN, FORMAT_REPLY, GATE, LITERATURE, REVIEW, evaluate_archive as evaluate, load_cases
-from .common import load_batch
+from ..core.common import load_batch
+from ..core.evaluate import DESIGN, FORMAT_REPLY, GATE, LITERATURE, REVIEW, evaluate_archive as evaluate, load_cases
 
 
 PROPOSALS = {

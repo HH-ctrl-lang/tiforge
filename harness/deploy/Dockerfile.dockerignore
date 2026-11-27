@@ -1,0 +1,13 @@
+**
+!harness/
+!harness/__init__.py
+!harness/core/
+!harness/core/__init__.py
+!harness/core/common.py
+!harness/core/evidence.py
+!harness/core/evidence_mcp.py
+!harness/deploy/
+!harness/deploy/requirements.txt
+!logging/
+!logging/archive/
+!logging/archive/harness-evidence.json
