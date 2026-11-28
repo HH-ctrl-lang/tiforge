@@ -8,7 +8,7 @@ from scripts.diagnose_runs import diagnose_archive, load_jsonl
 
 
 class V08ArchiveTest(unittest.TestCase):
-    def archive(self, status, **tool_output):
+    def archive(self, status, *, node_name="文献知识提取", **tool_output):
         temporary = TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         run = Path(temporary.name) / "tf-v08-test"
@@ -16,7 +16,7 @@ class V08ArchiveTest(unittest.TestCase):
         self.assertFalse((run / "manifest.json").exists())
         lifecycle = {
             "node_id": "literature",
-            "node_name": "文献知识提取",
+            "node_name": node_name,
             "node_type": "jiuwen.mcp",
             "status": {"desc": "succeeded"},
             "inputs": {"literature_query": "查询 Ti999"},
@@ -53,6 +53,28 @@ class V08ArchiveTest(unittest.TestCase):
         diagnostic, failures = diagnose_archive(run)
         self.assertEqual(diagnostic["tool_error_count"], 1)
         self.assertEqual(failures[0]["error_code"], "EMPTY_QUERY")
+
+    def test_guard_reference_and_profile_are_archived_without_rejection(self):
+        reference = {
+            "candidate_id": "C01", "rule_id": "MO_EQ_REFERENCE", "status": "needs_review",
+            "metrics_json": json.dumps({"unsupported_elements": ["O"]}),
+        }
+        run, manifest = self.archive(
+            "needs_review", node_name="材料成分约束检查", version="0.4.5",
+            profile_version="f02-reference", profile_sha256="test-hash", profile_purpose="provisional",
+            candidate_decisions=[{"candidate_id": "C01", "status": "needs_review"}],
+            physical_checks=[reference],
+        )
+        self.assertEqual(manifest["diagnostic_status"], "normal")
+        node, = load_jsonl(run / "nodes.jsonl")
+        for key, expected in {
+            "version": "0.4.5", "profile_version": "f02-reference",
+            "profile_sha256": "test-hash", "profile_purpose": "provisional",
+        }.items():
+            self.assertEqual(node["tool_result"][key], expected)
+        self.assertEqual(node["outputs"]["physical_checks"], [reference])
+        outcome, = load_jsonl(run / "scientific_outcomes.jsonl")
+        self.assertEqual(outcome["outcome_type"], "gate_pending")
 
     def test_no_evidence_is_a_scientific_outcome(self):
         run, manifest = self.archive(

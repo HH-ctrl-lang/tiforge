@@ -59,17 +59,31 @@ def compare(baseline, candidate, target_case, target_finding):
         raise ValueError("目标用例不在开发用例集中。")
     if not any(item["code"] == target_finding and item["status"] == "fail" for item in before["findings"]):
         raise ValueError("基线没有复现指定的目标问题。")
+    gate_differences = []
+    for case_id, baseline_case in baseline["cases"].items():
+        candidate_case = candidate["cases"].get(case_id)
+        if candidate_case is None:
+            continue
+        for field in ("gate_version", "gate_scenario", "gate_profile_version", "gate_profile_sha256"):
+            old = baseline_case["evidence"].get(field)
+            new = candidate_case["evidence"].get(field)
+            if old and new and old != new:
+                gate_differences.append({"case_id": case_id, "field": field, "baseline": old, "candidate": new})
+
     statuses = {case["status"] for case in candidate["cases"].values()}
     if "fail" in statuses:
         decision = "reject"
-    elif "needs_review" in statuses:
+    elif "needs_review" in statuses or gate_differences:
         decision = "needs_review"
     else:
         decision = "ready_for_full_regression"
-    return {
+    report = {
         "decision": decision, "target_case": target_case, "target_finding": target_finding,
         "baseline": baseline, "candidate": candidate,
     }
+    if gate_differences:
+        report["gate_environment_differences"] = gate_differences
+    return report
 
 
 def configure(parser):

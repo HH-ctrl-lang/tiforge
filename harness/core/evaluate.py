@@ -281,6 +281,9 @@ def _evaluate_v01(run, nodes, expected, evidence):
         evidence["all_passed"] = gate.get("all_passed")
         evidence["gate_version"] = gate.get("version")
         evidence["gate_scenario"] = gate.get("scenario_id")
+        for key in ("call_id", "profile_version", "profile_sha256", "profile_purpose"):
+            if key in gate:
+                evidence[f"gate_{key}"] = gate[key]
         rejection = [key for key, state in states.items() if state == "reject"]
         if rejection:
             note("gate_rejected", GATE, {"candidate_ids": rejection})
@@ -313,10 +316,14 @@ def _evaluate_v01(run, nodes, expected, evidence):
             note("review_alignment", "结束", "最终回复缺少候选编号。")
 
     if isinstance(checks, list):
-        evidence["physical_checks"] = [
-            {key: row.get(key) for key in ("candidate_id", "rule_id", "status")}
-            for row in checks if isinstance(row, dict)
-        ]
+        evidence["physical_checks"] = []
+        for row in checks:
+            if not isinstance(row, dict):
+                continue
+            check = {key: row.get(key) for key in ("candidate_id", "rule_id", "status")}
+            if row.get("rule_id") == "MO_EQ_REFERENCE":
+                check.update({key: row[key] for key in ("metrics_json", "source", "version", "reason") if key in row})
+            evidence["physical_checks"].append(check)
         composition_checks = by_candidate([
             row for row in checks if isinstance(row, dict) and row.get("rule_id") == "COMPOSITION"
         ])

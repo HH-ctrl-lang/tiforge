@@ -1,7 +1,7 @@
 {
   "project_name": "TiForge",
   "harness_version": "v01",
-  "workflow_version": "v09",
+  "workflow_version": "v10",
   "task_system": "titanium_alloy",
   "log_schema_version": "v06"
 }

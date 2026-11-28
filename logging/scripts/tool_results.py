@@ -20,7 +20,8 @@ def get_tool_result(node):
     result = {
         key: fields[key]
         for key in ("status", "error_code", "error_message", "call_id", "tool_version",
-                    "version", "dataset_version", "scenario_id", "elapsed_ms")
+                    "version", "dataset_version", "scenario_id", "elapsed_ms",
+                    "profile_version", "profile_sha256", "profile_purpose")
         if key in fields
     }
     for source in (fields, outputs, outputs.get("systemFields")):
