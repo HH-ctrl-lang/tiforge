@@ -7,6 +7,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from .core import reference_review
 from .core.common import load_run, node_fields, read_object, read_rows
 
 
@@ -36,7 +37,7 @@ def leaves(value, path):
         yield path, str(value)
 
 
-def packet_for(run, nodes, expected):
+def design_subjects(nodes):
     from .core.evaluate import DESIGN, GATE, LITERATURE, REVIEW, by_candidate
 
     candidates = by_candidate(node_fields(nodes, DESIGN).get("candidate_list"))
@@ -62,12 +63,27 @@ def packet_for(run, nodes, expected):
             if isinstance(row, dict) and row.get("candidate_id") == cid:
                 evidence.update(leaves(row, f"gate/{index}"))
         cases[cid] = {"claims": claims, "sources": evidence}
+    return cases
+
+
+def packet_for(run, nodes, expected):
+    literature = node_fields(nodes, "文献知识提取")
+    reference = expected.get("route") == "reference_review"
+    if reference:
+        cases = {expected["scope"]: reference_review.review_subject(nodes, expected)}
+    else:
+        cases = design_subjects(nodes)
     request_file = run / "request.json"
     request = read_object(request_file) if request_file.is_file() else {}
     packet = {"run_id": run.name, "case_id": request.get("case_id"), "inputs": request.get("inputs"),
-              "workflow_version": request.get("workflow_version"), "rubric": RUBRIC, "instructions": GUIDE,
+              "workflow_version": request.get("workflow_version"), "rubric": reference_review.BOUNDARY_RUBRIC if reference else RUBRIC, "instructions": GUIDE,
               "literature_status": literature.get("status"), "literature_error": literature.get("error_code"),
               "fixed_expectations": expected, "candidates": cases}
+    if reference:
+        packet["instructions"] = ("按指定 scope 评价 evidence_boundary。candidate_id 使用范围名。"
+                                  "评价整个被测范围；结论和依据各提供可定位的逐字引文。"
+                                  "answer 必须引用最终回答；检索缺口只能证明本次没有检索依据。"
+                                  "填写 reviewer、packet_sha256 和 judgments，沿用逐项评语字段。")
     packet["packet_sha256"] = sha256(json.dumps(packet, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     return packet
 
@@ -89,6 +105,15 @@ def verified(item, case):
         return "needs_review", "缺少结论原句或依据引文。"
     if claim not in case["claims"].get(field, "") or quote not in case["sources"].get(source, ""):
         return "needs_review", "结论或依据引文无法在指定字段定位。"
+    if item["criterion"] == "evidence_boundary":
+        if item["candidate_id"] == "answer" and field != "answer":
+            return "needs_review", "评价最终回答时需要引用最终回答原句。"
+        if not source.startswith(("reference/", "literature/", "retrieval_gap/")):
+            return "needs_review", "缺少文献内容、独立参考字段或实际检索缺口。"
+        if source.endswith(("/record_id", "/source_doi", "/paper_id", "/sample_id")):
+            return "needs_review", "仅有编号或 DOI，无法支撑语义判断。"
+    if item["criterion"] == "reasoning" and status == "pass" and field != "design_rationale":
+        return "needs_review", "确认设计理由成立需要引用候选自身的设计理由。"
     if item["criterion"] == "citation":
         parts = source.split("/")
         if len(parts) < 3 or parts[0] != "literature" or parts[2] in (
@@ -115,7 +140,7 @@ def score(packet, review):
         if not isinstance(row, dict):
             raise ValueError("评语须为对象。")
         cid, criterion = row.get("candidate_id"), row.get("criterion")
-        if not isinstance(cid, str) or cid not in packet["candidates"] or not isinstance(criterion, str) or criterion not in RUBRIC:
+        if not isinstance(cid, str) or cid not in packet["candidates"] or not isinstance(criterion, str) or criterion not in packet["rubric"]:
             raise ValueError("存在未知候选或判据。")
         if (cid, criterion) in indexed:
             raise ValueError("存在重复语义评语。")
@@ -123,7 +148,7 @@ def score(packet, review):
 
     results = []
     for cid, case in packet["candidates"].items():
-        for criterion in RUBRIC:
+        for criterion in packet["rubric"]:
             row = indexed.get((cid, criterion))
             status, reason = verified(row, case) if row else ("needs_review", "缺少这一项的评语。")
             results.append({"candidate_id": cid, "criterion": criterion, "status": status, "reason": reason,
@@ -132,20 +157,40 @@ def score(packet, review):
     return {"packet_sha256": packet["packet_sha256"], "reviewer": reviewer, "judgments": results}
 
 
-def attach(result, run, packet):
+def attach(result, run, packet, literature=None):
     from .core.evaluate import DESIGN
 
+    contradictions = {}
+    if packet["fixed_expectations"].get("route") == "design":
+        for cid, subject in packet["candidates"].items():
+            rationale = subject["claims"].get("design_rationale")
+            for key, criterion, checks in (
+                ("rationale_composition", "reasoning", reference_review.composition_claims(rationale, subject["sources"].get("composition"))),
+                ("citation_claims", "citation", reference_review.citation_claims(rationale, literature or {})),
+            ):
+                if checks:
+                    result["evidence"].setdefault(key, {})[cid] = checks
+                for check in checks:
+                    if check["status"] == "fail":
+                        contradictions[cid, criterion] = check
+                        result["findings"].append({"status": "fail", "code": key, "node": DESIGN,
+                                                   "detail": {"candidate_id": cid, **check}})
+                        result["status"] = "fail"
     review_path = run / "semantic_review.json"
     try:
         semantic = score(packet, read_object(review_path))
     except (OSError, ValueError) as exc:
         semantic = {"packet_sha256": packet["packet_sha256"], "judgments": [], "issue": str(exc)}
+    for judgment in semantic["judgments"]:
+        contradiction = contradictions.get((judgment["candidate_id"], judgment["criterion"]))
+        if contradiction:
+            judgment.update(status="fail", reason="逐项核对发现明确矛盾。", counterevidence=contradiction)
     result["evidence"]["semantic"] = semantic
     issues = [(r["status"], r) for r in semantic["judgments"] if r["status"] != "pass"]
     if "issue" in semantic:
         issues.append(("needs_review", semantic["issue"]))
     for status, detail in issues:
-        result["findings"].append({"status": status, "code": "semantic_review", "node": DESIGN, "detail": detail})
+        result["findings"].append({"status": status, "code": "semantic_review", "node": reference_review.SCOPES.get(packet["fixed_expectations"].get("scope"), DESIGN), "detail": detail})
         result["status"] = max(result["status"], status, key=VERDICTS.index)
     return result
 
@@ -163,7 +208,7 @@ def main():
         cases = load_cases(args.cases)
         manifest = load_run(args.run, cases)
         expected = cases[manifest["case_id"]]["expected"]
-        if expected.get("semantic_review") is not True:
+        if expected.get("semantic_review") is not True and expected.get("route") != "reference_review":
             raise ValueError("请在设计用例的 expected 中启用 semantic_review。")
         packet = packet_for(args.run, list(read_rows(args.run / "nodes.jsonl")), expected)
         output = packet
