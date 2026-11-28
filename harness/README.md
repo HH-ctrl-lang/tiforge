@@ -61,6 +61,28 @@ python -m harness v00 --baseline '<基线归档目录>' --candidate '<候选归�
 python -B -m unittest discover -s harness/tests -v
 ```
 
+## 保存和比较工作流配置
+
+在智果的工作流列表导出同一条工作流的 AgentArts V2.0 JSONL。每份导出对应一个已确认的版本标签。在 TiForge 根目录运行：
+
+```powershell
+python -m harness snapshot save v08 '<智果导出的 v08 JSONL>'
+python -m harness snapshot save v09 '<智果导出的 v09 JSONL>'
+python -m harness snapshot diff v08 v09
+```
+
+命令按节点 ID 保存提示词、输入绑定、输出定义、节点配置和连线，保留源文件哈希、配置哈希和导出里的平台版本标识。对比输出提示词逐行差异、输入修改前后的值，以及其余节点配置和连线的差异。版本标签由操作者填写，需用控制台核对出包对应的实际部署。
+
+快照默认写入 Git 忽略的 `harness/snapshots/`，同名版本文件不会覆盖。原始导出可能包含关联资源的鉴权配置，快照仅保留这些资源的引用标识，并遮盖工作流中的已知凭证字段。
+
+### 生成待导入的候选 DSL
+
+```powershell
+python -m harness candidate v08 v09 '<原始 v08 JSONL>' --case industrial-cost --run-id tf-20261126-194923-da3b059e28d9
+```
+
+候选命令核对原始导出和基线快照，调用 MaaS 提案员核实空查询并生成指定提示词行的替换文本。当前支持研究需求解析的空查询规则。它生成 `harness/snapshots/candidates/v09/workflow-v09.jsonl` 和用于审核的 `review.json`。候选文件保留原工作流 ID 和关联资源，审核后可在智果导入预览。选择同 ID 工作流会覆盖其现有配置，导入和部署分开确认。发布后重新导出实际版本，再用 `snapshot save` 登记。 [智果 DSL 导入](https://support.huaweicloud.com/lowcode-agentarts/agentarts_05_0058.html)
+
 ## 从已有归档生成改动提案
 
 ```powershell
@@ -72,6 +94,18 @@ python -m harness propose
 当前处理 `EMPTY_QUERY`。程序沿需求解析输出、MCP 输入和错误回包定位最早的可见偏差，按版本和偏差类型合并重复运行。每条提案包含 Run ID、证据字段、建议改文、预期修复的用例和回归风险。相同用例的通过记录优先作为参考，其他通过的设计用例仅用于说明接口行为。未找到可验证根因的失败和采集中断保留在 `unresolved`。
 
 这一实现参考 HarnessEvolve 的首处偏差定位与同源错误归组，以及 AHE 的改动清单和可检验预期。提案是待评审草案，候选版本应用和上线由后续验证决定。 [HarnessEvolve 方法](https://arxiv.org/html/2609.00829v1#S3.SS4) · [AHE 方法](https://arxiv.org/html/2604.25850v3#S3.SS3)
+
+### 直接运行外环提案员
+
+本机执行只读证据工具，调用华为云 MaaS 的 DeepSeek-V4.1-Flash-1017 选择工具和生成提案。Harness 继续核对实际工具返回的证据。此模式从同一份脱敏快照取证，无需部署 MCP 容器。
+
+```powershell
+python -m harness propose --model-agent --case industrial-cost --run-id tf-20261126-194923-da3b059e28d9
+```
+
+在 TiForge 根目录的 `maas.local.json` 中填写西南-贵阳一的 **MaaS API Key**，格式为 `{"api_key": "你的 MaaS API Key"}`。该文件已加入 Git 忽略规则。如果设置了 `TIFORGE_MAAS_API_KEY`，程序优先使用环境变量。两处都没填写时可以在交互式终端输入。
+
+证据快照默认为 `logging/archive/harness-evidence.json`，可用 `--evidence` 指定。若尚未导出快照，使用下一节的证据导出命令。 [华为云 MaaS 模型接口](https://support.huaweicloud.com/model-call-maas/model-call-019.html)
 
 ### 接入 AgentArts 提案员
 

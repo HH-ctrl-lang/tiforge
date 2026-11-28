@@ -159,33 +159,37 @@ def configure(parser):
                         help="归档根目录或批次目录，默认读取项目 logging/archive，可提供多个")
     parser.add_argument("--cases", type=Path, default=PROJECT / "harness" / "cases" / "v01.jsonl")
     parser.add_argument("--output", type=Path, help="把提案另存为新的 JSON 文件")
-    parser.add_argument("--agentarts", action="store_true", help="调用已部署的外环提案员")
-    parser.add_argument("--case", help="AgentArts 模式下指定用例 ID")
-    parser.add_argument("--run-id", help="AgentArts 模式下指定本次调查目标")
+    agent = parser.add_mutually_exclusive_group()
+    agent.add_argument("--agentarts", action="store_true", help="调用已部署的外环提案员")
+    agent.add_argument("--model-agent", action="store_true", help="直连华为云 MaaS，在本机执行只读证据工具")
+    parser.add_argument("--case", help="智能体模式下指定用例 ID")
+    parser.add_argument("--run-id", help="智能体模式下指定本次调查目标")
     parser.add_argument("--workflow-version", help="默认从项目 config.json 读取")
-    parser.add_argument("--evidence", type=Path, help="部署到 MCP 的同一份证据快照")
+    parser.add_argument("--evidence", type=Path, help="供智能体核验的脱敏证据快照")
     parser.set_defaults(run=run)
 
 
 def run(args, parser):
     try:
-        if args.agentarts:
+        if args.agentarts or args.model_agent:
             from .agentarts import build_agent_report
             from .evidence import EvidenceStore, SNAPSHOT
 
             if not args.case:
-                raise ValueError("AgentArts 模式需要指定 --case。")
+                raise ValueError("智能体模式需要指定 --case。")
             if args.archives:
-                raise ValueError("请用 --evidence 指定 AgentArts 要核验的证据快照。")
+                raise ValueError("请用 --evidence 指定要核验的证据快照。")
             if args.case not in load_cases(args.cases):
                 raise ValueError("指定用例不在当前用例集中。")
             version = args.workflow_version or read_object(PROJECT / "config.json").get("workflow_version")
             if not isinstance(version, str) or not version.strip():
                 raise ValueError("config.json 中缺少 workflow_version。")
-            report = build_agent_report(EvidenceStore(args.evidence or SNAPSHOT), args.case, version, args.run_id)
+            source = "model_agent" if args.model_agent else "agentarts"
+            report = build_agent_report(EvidenceStore(args.evidence or SNAPSHOT), args.case, version,
+                                        args.run_id, source=source)
         else:
             if any((args.case, args.run_id, args.workflow_version, args.evidence)):
-                raise ValueError("这些提案参数需要使用 --agentarts。")
+                raise ValueError("这些提案参数需要使用 --agentarts 或 --model-agent。")
             report = build_proposals(load_cases(args.cases), args.archives or [PROJECT / "logging" / "archive"])
         content = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
         if args.output:

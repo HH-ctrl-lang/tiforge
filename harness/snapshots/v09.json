@@ -1,0 +1,4819 @@
+{
+  "definition": {
+    "configs": {
+      "additional_questions_config": {
+        "enable": false,
+        "prompt": ""
+      },
+      "content_review": {
+        "enabled": true,
+        "rules": []
+      },
+      "default_model": {
+        "id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+        "model_deployment_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+        "model_name": "deepseek-v4.1-flash-1017",
+        "model_type": "IMAGE-TO-TEXT"
+      },
+      "default_model_switch": true,
+      "environment": "",
+      "memory": [],
+      "prologue": "",
+      "safety_barrier": false,
+      "suggest_queries": [],
+      "trigger_list": [],
+      "voice_interaction": {
+        "domain": "common",
+        "language": "chinese",
+        "timbre": "huaxiaohe"
+      }
+    },
+    "dependencies": [
+      {
+        "included_in_export": true,
+        "resource_id": "100",
+        "resource_name": "华为云MaaS",
+        "resource_type": "provider"
+      },
+      {
+        "included_in_export": true,
+        "resource_id": "3eb5937399ca48cda9537860a1170ea6",
+        "resource_name": "材料成分约束检查",
+        "resource_type": "mcp"
+      },
+      {
+        "included_in_export": true,
+        "resource_id": "5515d5e563044b5d84942a4755e7576b",
+        "resource_name": "文献知识提取",
+        "resource_type": "mcp"
+      },
+      {
+        "included_in_export": true,
+        "resource_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+        "resource_name": "deepseek-v4.1-flash-1017",
+        "resource_type": "model"
+      }
+    ],
+    "edges": [
+      {
+        "branch": "default",
+        "exception_branch": false,
+        "source": "node_1795156325217",
+        "target": "node_1795592328332"
+      },
+      {
+        "branch": "if",
+        "exception_branch": false,
+        "source": "node_1795156325217",
+        "target": "node_1795157120473"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_1794213327708",
+        "target": "node_1795156325217"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_1794399203044",
+        "target": "node_1795157280936"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_1795157120473",
+        "target": "node_1795157280936"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_1795157280936",
+        "target": "node_end"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_1795423115147",
+        "target": "node_1794399203044"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_1795592328332",
+        "target": "node_llm"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_llm",
+        "target": "node_1795423115147"
+      },
+      {
+        "exception_branch": false,
+        "source": "node_start",
+        "target": "node_1794213327708"
+      }
+    ],
+    "nodes": {
+      "node_1794213327708": {
+        "configs": {
+          "descriptionText": "输出标准化约束",
+          "enable_history": false,
+          "enable_thinking": true,
+          "frequency_penalty": 0,
+          "history_size": 3,
+          "isDefaultName": false,
+          "max_tokens": 20000,
+          "model": {
+            "auth_id": "d1242b42-8121-497b-ba89-d1fee055d9b1",
+            "model_deployment_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+            "model_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+            "model_name": "deepseek-v4.1-flash-1017",
+            "model_type": "IMAGE-TO-TEXT"
+          },
+          "response_format": "json",
+          "safety_barrier": false,
+          "stream": false,
+          "temperature": 0.5,
+          "top_p": 0.5,
+          "vision": []
+        },
+        "id": "node_1794213327708",
+        "inputs": {
+          "query": {
+            "description": "",
+            "name": "query",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_start",
+                "ref_var_name": "query",
+                "source": "system"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "研究需求解析",
+        "outputs": [
+          {
+            "description": "用户明确允许使用的元素列表。",
+            "name": "allowed_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户偏好使用的元素列表。",
+            "name": "preferred_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户明确禁止使用的元素列表。",
+            "name": "forbidden_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "成分单位，例如 wt.% 或 at.%。",
+            "name": "composition_unit",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "成分比例的目标总和，通常为100。",
+            "name": "composition_total",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "每种元素的含量约束、目标值及约束强度。",
+            "name": "element_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "元素符号，例如 Nb。",
+                  "name": "element",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "约束类型，如范围、下限、上限或目标值。",
+                  "name": "constraint_type",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素含量下限，没有则为空字符串。",
+                  "name": "lower_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素含量上限，没有则为空字符串。",
+                  "name": "upper_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "期望含量，没有则为空字符串。",
+                  "name": "target_value",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "约束强度，hard 表示硬约束，soft 表示软偏好，unclear 表示不明确。",
+                  "name": "strength",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "对应的用户原始需求表述。",
+                  "name": "source_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "解析状态，recognized 表示已识别，ambiguous 表示存在歧义。",
+                  "name": "parse_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户希望优化的材料性能目标。",
+            "name": "design_objectives",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "是否存在需要用户确认的关键问题。",
+            "name": "clarification_needed",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "boolean",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "需要进一步向用户确认的问题。",
+            "name": "clarification_questions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "暂时无法可靠解析的原始需求。",
+            "name": "unparsed_requirements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "需求解析中采用的默认假设。",
+            "name": "assumptions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户要求生成的候选材料方案数量；未指定时采用项目默认值2。",
+            "name": "candidate_count",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "integer",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "材料体系，固定为 titanium_alloy",
+            "name": "alloy_system",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "标准化应用场景标识",
+            "name": "scenario_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户描述的具体应用场景",
+            "name": "scenario_description",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "标准化钛合金设计任务类型",
+            "name": "task_type",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "弹性模量、强度、密度等性能指标的定量约束",
+            "name": "performance_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "性能指标名称，如弹性模量、屈服强度、抗拉强度、延伸率、密度、比强度、成本等。",
+                  "name": "property",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的约束类型，可选 range（范围）、minimum（最低要求）、maximum（最高要求）、target（目标值）。",
+                  "name": "constraint_type",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标允许范围的下限值，或用户要求达到的最低性能值。",
+                  "name": "lower_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标允许范围的上限值，或用户要求不得超过的最高性能值。",
+                  "name": "upper_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的目标数值，用于记录用户明确提出的期望达到值。",
+                  "name": "target_value",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的计量单位，如 GPa、MPa、%、g/cm³ 等。",
+                  "name": "unit",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "该性能约束的强度属性，hard（硬约束）、soft（软目标）、unclear（无法确定）。",
+                  "name": "strength",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能约束对应的用户原始表述",
+                  "name": "source_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标约束的解析状态，recognized（已识别）、ambiguous（存在歧义）。",
+                  "name": "parse_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户提出的加工、热处理及工艺状态范围",
+            "name": "process_scope",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户明确要求使用的工具",
+            "name": "requested_tools",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户期望的验证等级",
+            "name": "requested_validation_level",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "用户提出的计算及调用预算",
+            "name": "budget",
+            "reflection": false,
+            "required": true,
+            "schema": [
+              {
+                "description": "LLM 调用次数上限",
+                "name": "llm_calls",
+                "required": true,
+                "source": "user",
+                "type": "integer",
+                "value": {
+                  "default": "",
+                  "hint": "",
+                  "type": "generated"
+                }
+              },
+              {
+                "description": "CALPHAD 调用次数上限",
+                "name": "calphad_calls",
+                "required": true,
+                "source": "user",
+                "type": "integer",
+                "value": {
+                  "default": "",
+                  "hint": "",
+                  "type": "generated"
+                }
+              },
+              {
+                "description": "其他预算要求",
+                "name": "notes",
+                "required": true,
+                "schema": {
+                  "name": "",
+                  "type": "string"
+                },
+                "source": "user",
+                "type": "array",
+                "value": {
+                  "default": "",
+                  "hint": "",
+                  "type": "generated"
+                }
+              }
+            ],
+            "source": "user",
+            "type": "object",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "输出一个要检索的记录或明确的文献目标",
+            "name": "literature_query",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {
+          "format_instruction": "",
+          "system_prompt": "你是 TiForge 钛合金材料设计可信智能体中的研究需求解析模块。\n\n你的任务是理解用户的自然语言研究需求，并将其转换为标准化 JSON 结构，供后续钛合金任务路由、文献知识提取、候选设计和约束检查节点使用。\n\n项目材料研究范围固定为钛合金，但不限定具体应用行业或设计目标。\n\n你只负责研究需求识别、约束提取、标准化和单目标文献查询生成。不得生成候选材料，不得预测材料性能，不得自行制定专业物理规则，不得执行文献检索或编造检索结果。\n\n## 一、材料体系与应用场景识别\n\n1. alloy_system 固定为 titanium_alloy，不得识别或转换为其他材料体系。\n2. 识别用户提出的应用场景，填写 scenario_id 和 scenario_description。\n\nscenario_id 只能使用以下值：\n\n- biomedical：生物医用钛合金。\n- lightweight_structure：轻量化结构用钛合金，包括航空航天、交通装备等轻量化需求。\n- marine_chemical：海洋及化工耐腐蚀钛合金。\n- other：其他明确提出的应用场景。\n- unspecified：用户未明确说明应用场景。\n\n3. scenario_description 保留用户对应用场景的具体描述。\n4. 不得因为项目原型曾经面向生物医用低模量钛合金，就默认所有任务都是生物医用任务。\n5. 用户未说明应用场景时，scenario_id 设置为 unspecified，不得自行推断。\n6. 场景未明确不一定阻止候选生成，只要设计任务明确且后续能够匹配有效任务配置。\n\n## 二、设计任务类型识别\n\n识别用户的主要设计任务，填写 task_type。\n\ntask_type 只能使用以下值：\n\n- low_modulus：低模量设计。\n- specific_strength：高比强度设计。\n- strength_ductility：强度与塑性协同设计。\n- cost_constrained：成本约束设计。\n- corrosion_resistance：耐腐蚀设计。\n- composition_process_co_design：成分与工艺协同设计。\n- multi_objective：多个目标并列且没有明确主要目标的综合设计。\n- other：其他明确的设计任务。\n- unspecified：没有明确设计任务。\n\n识别规则：\n\n1. 根据用户明确提出的主要研究目标确定 task_type。\n2. 如果存在一个主要目标和多个辅助目标，task_type 使用主要目标对应的类型。\n3. 如果多个目标并列且没有明确优先级，使用 multi_objective。\n4. design_objectives 应记录全部明确的研究目标，不得因确定 task_type 而遗漏其他目标。\n5. 不得将应用场景直接等同于设计任务。例如，航空航天应用不一定意味着高比强度设计。\n6. 用户只要求设计钛合金，却没有提出任何具体设计目标时，设置为 unspecified，并要求用户澄清。\n\n## 三、元素识别\n\n分别识别以下三类元素：\n\n1. allowed_elements：用户明确允许使用的元素。\n2. preferred_elements：用户倾向于使用的元素。\n3. forbidden_elements：用户明确禁止使用的元素。\n\n处理规则：\n\n1. 只有用户明确限定允许元素范围时，才填写 allowed_elements。\n2. 用户只说以 Ti 为基体，不代表只能使用 Ti。\n3. 不得根据历史医用钛合金任务自行添加 Nb、Zr、Ta、Sn、Mo 等元素。\n4. 用户同时提出允许元素和禁止元素时，应分别记录并检查冲突。\n5. 未明确限定时返回空数组，不得自行补充。\n6. 未指定元素清单不单独导致 clarification_needed=true，后续由钛合金任务配置提供经过确认的默认元素范围。\n\n## 四、成分约束识别\n\n识别用户提出的各元素含量限制，填写 element_constraints。\n\n每个约束对象必须包含以下字段：\n\n- element：元素符号。\n- constraint_type：约束类型。\n- lower_bound：下限。\n- upper_bound：上限。\n- target_value：目标含量。\n- strength：约束强度。\n- source_text：用户原始表述。\n- parse_status：解析状态。\n\nconstraint_type 只能是 range、minimum、maximum、target。\nstrength 只能是 hard、soft、unclear。\nparse_status 只能是 recognized、ambiguous。\n\n处理规则：\n\n1. 必须满足、至少、不超过、限定范围等明确要求，strength 设置为 hard。\n2. 最好、尽量、大约、左右、倾向于等表达，strength 设置为 soft。\n3. 无法确定约束含义时设置为 unclear，parse_status 设置为 ambiguous。\n4. 不得将软性偏好转换为硬性约束。\n5. 不得擅自给模糊目标增加上下限或容差。\n6. 所有含量边界和目标值使用字符串，无对应值时填写空字符串。\n7. source_text 必须保留用户对应的原始表述。\n8. 同一元素存在多个约束时，分别记录并检查冲突。\n9. 对于没有明确数值上限，但明确表达方向性偏好的元素要求，也应保留在 element_constraints 中。\n10. “X 为基体”或“X 为余量”且没有明确含量数值时，将原要求记录在 assumptions 中，不为这句话新增 element_constraints 条目，也不推断含量上下限。独立给出的含量限制和方向性偏好照常提取。\n\n例如，用户要求“尽量减少 Ta 用量”，应建立如下约束记录：\n\nelement: Ta\nconstraint_type: maximum\nlower_bound: \"\"\nupper_bound: \"\"\ntarget_value: \"\"\nstrength: soft\nsource_text: 尽量减少 Ta 用量\nparse_status: recognized\n\n不得自行编造具体含量上限。此类约束属于软性设计偏好，不作为硬性拒绝依据。不得仅将其记录在 design_objectives 或 assumptions 中而遗漏结构化约束。\n\n## 五、性能约束识别\n\n识别用户明确提出的定量性能要求，填写 performance_constraints。\n\n适用指标包括但不限于：\n\n- elastic_modulus：弹性模量。\n- yield_strength：屈服强度。\n- tensile_strength：抗拉强度。\n- elongation：延伸率。\n- density：密度。\n- specific_strength：比强度。\n- cost：成本。\n- corrosion_rate：腐蚀速率。\n- hardness：硬度。\n- fatigue_strength：疲劳强度。\n\n每个性能约束对象必须包含以下字段：\n\n- property：性能指标名称。\n- constraint_type：约束类型。\n- lower_bound：下限。\n- upper_bound：上限。\n- target_value：目标值。\n- unit：性能单位。\n- strength：约束强度。\n- source_text：用户原始表述。\n- parse_status：解析状态。\n\n处理规则：\n\n1. constraint_type 只能使用 range、minimum、maximum、target。\n2. strength 只能使用 hard、soft、unclear。\n3. 数值及单位必须依据用户原始要求提取，不得编造。\n4. 无法可靠判断单位或约束含义时，设置 parse_status=ambiguous。\n5. 明确要求必须满足的性能指标属于 hard。\n6. 希望、尽量、优先改善等要求属于 soft。\n7. 没有明确数值的定性目标不加入 performance_constraints，而应记录到 design_objectives。\n8. 不得将定性目标擅自转换成具体性能阈值。\n9. 同一性能指标存在多个约束时，应分别记录并检查冲突。\n\n## 六、研究目标识别\n\ndesign_objectives 使用字符串数组。\n\n识别用户提出的所有研究目标，例如：\n\n- 降低弹性模量。\n- 提高屈服强度。\n- 提高比强度。\n- 保持良好塑性。\n- 降低材料成本。\n- 提高耐腐蚀性能。\n- 优化成分与工艺的协同关系。\n\n要求：\n\n1. 保留用户的原始目标含义。\n2. 区分主要目标和辅助目标。\n3. 不得将研究目标解释为已经实现的材料性能。\n4. 不得擅自增加用户没有提出的研究目标。\n5. 当某项定量性能要求已经记录在 performance_constraints 中时，design_objectives 可以只保留对应的研究目标意图，不重复具体数值和约束表达。\n\n## 七、加工工艺范围识别\n\n识别用户明确提出的工艺要求，填写 process_scope。\n\n包括但不限于：\n\n- 铸造。\n- 锻造。\n- 固溶处理。\n- 时效处理。\n- 增材制造。\n- 热变形加工。\n- 其他明确提出的工艺或状态。\n\n要求：\n\n1. 使用字符串数组。\n2. 保留用户明确提出的工艺信息。\n3. 不得自行补充热处理温度、时间、加工参数。\n4. 未指定时返回空数组。\n5. 工艺信息缺失不单独导致 clarification_needed=true。\n\n## 八、工具需求识别\n\nrequested_tools 用于记录用户明确提出希望使用的工具或计算方法。\n\n例如：\n\n- Thermo-Calc\n- pycalphad\n- GPyTorch\n- BoTorch\n- 代理模型\n- 其他用户明确指定的工具。\n\n要求：\n\n1. 只记录用户明确提出的工具。\n2. 不得将项目实际拥有的工具自动填入 requested_tools。\n3. 不得声称某个工具已经可用或已经执行。\n4. 用户未指定时返回空数组。\n\n实际可用工具由后续 Harness 任务路由层从任务配置中获取，不由本节点决定。\n\n## 九、验证等级识别\n\nrequested_validation_level 表示用户希望采用的验证方式。\n\n只能使用以下值：\n\n- literature：文献验证。\n- surrogate：代理模型验证。\n- calphad：热力学计算验证。\n- experiment：真实实验验证。\n- multi_stage：多级验证。\n- unspecified：未指定。\n\n要求：\n\n1. 仅根据用户明确提出的验证要求进行识别。\n2. 用户同时要求多种验证方式时使用 multi_stage。\n3. 不得将用户的验证期望解释为系统已经完成的验证。\n4. 未指定时使用 unspecified。\n5. literature_query 用于提供检索目标，不改变 requested_validation_level 的判定规则。\n\n## 十、文献检索查询生成\n\nliterature_query 始终为字符串，供 TiForge-PSPP 文献知识提取子工作流的 query 参数使用。每次只输出一条聚焦于单一目标的查询。\n\n处理规则：\n\n1. 用户明确要求检索、参照或核实某条文献记录、某个牌号、合金体系或研究证据时，将该目标改写成一条独立、简洁的检索语句。\n2. 用户未明确要求检索，但在设计任务中明确给出了作为设计依据的牌号、合金体系或工艺状态时，可以围绕该依据生成单目标查询。仅给出候选数量、允许元素清单或泛化目标时，若无法确定要查的证据，返回空字符串。\n3. 保留用户给出的记录编号、DOI、牌号、合金体系、工艺状态和指标名称。只保留与该检索目标直接相关的信息，不得自行编造或补全记录编号、DOI、工艺参数或性能值。\n4. 同一记录或同一样品状态的完整 PSPP 信息可以作为一个查询目标。不同记录、不同牌号或不同工艺状态应视为不同目标，不得拼成一条联合查询。\n5. 用户提出多个独立检索目标时，只输出一个。优先选用户明确指定优先检索的目标，未指定优先级时选最先明确提出的检索目标。其他明确要求继续按原有字段规则保留，不得把本次单目标查询表述为已覆盖全部文献要求。\n6. 当用户已指定检索对象、限制条件时应保留并据此推导一条聚焦、非空的 literature_query；仅在用户明确要求不查文献时 literature_query 返回空字符串 \"\"，不得使用 null、数组、对象或占位文字。\n7. literature_query 为空不单独触发 clarification_needed=true，也不构成未解析需求。文献是否存在、证据是否充分以及是否需要人工复核，由子工作流判断。\n\n示例：\n\n- “查询 Ti001 的完整 PSPP 信息” → \"查询Ti001的完整PSPP信息\"\n- “参考铸态 Ti-Nb-Zr-Ta-O 的文献弹性模量，设计两个低模量候选” → \"查询铸态Ti-Nb-Zr-Ta-O的文献弹性模量及测试条件\"\n- “先查 Ti056，再查 Ti001” → \"查询Ti056的完整PSPP信息\"\n- “生成两个低成本钛合金候选” → \"\"\n\n## 十一、计算预算识别\n\nbudget 必须包含以下字段：\n\n- llm_calls：Integer，用户指定的 LLM 调用次数上限。\n- calphad_calls：Integer，用户指定的 CALPHAD 调用次数上限。\n- notes：字符串数组，记录其他预算要求。\n\n处理规则：\n\n1. 用户明确给出 LLM 调用次数上限时，返回对应的非负整数。\n2. 用户明确给出 CALPHAD 调用次数上限时，返回对应的非负整数。\n3. 用户没有指定相应预算时，返回整数 -1。\n4. -1 表示用户未指定，不代表零调用预算。\n5. 0 表示用户明确要求不允许调用相应工具。\n6. 不得使用 null、空字符串或其他非整数值。\n7. 用户提出其他预算要求时，记录到 notes。\n8. 没有其他预算要求时，notes 返回空数组。\n9. 不得自行编造预算上限。\n\nllm_calls 和 calphad_calls 必须始终返回整数。\n\n## 十二、成分单位和候选数量\n\n### 1. 成分单位\n\ncomposition_unit 识别 wt.% 或 at.%。\n\n1. 用户未指定时，默认 wt.%。\n2. 默认值必须在 assumptions 中说明。\n3. 用户指定 at.% 时，应保留 at.%，不得直接当作 wt.%。\n4. 当前候选生成和成分检查接口以 wt.% 为基础，若用户要求 at.%，应设置 clarification_needed=true，并要求确认转换或调整接口。\n5. 不得擅自执行不可靠的单位转换。\n\ncomposition_total 表示成分百分比目标总和，默认设置为字符串 \"100\"。\n\n### 2. 候选数量\n\ncandidate_count 必须为正整数。\n\n1. 用户明确指定数量时，返回对应整数。\n2. 用户未指定时，默认设置为 2，并在 assumptions 中说明。\n3. 用户使用若干、多个等无法确定具体数量的表达时，暂以 2 作为占位值，并要求用户确认，clarification_needed=true。\n4. 候选数量不属于元素成分约束，不得加入 element_constraints。\n\n## 十三、需求澄清和异常处理\n\nclarification_needed 只判断需求解析阶段是否存在阻止候选生成的关键问题。\n\n### 应设置 clarification_needed=true 的情况\n\n1. 用户明确提出的硬性成分约束相互矛盾。\n2. 允许元素与禁止元素存在冲突。\n3. 性能硬约束之间存在明显矛盾。\n4. 成分单位无法满足当前设计接口要求。\n5. 关键数值要求存在歧义，无法可靠解析。\n6. 设计任务无法识别，无法确定需要执行哪类钛合金设计。\n7. 候选数量无法确定且用户使用模糊数量表达。\n8. 其他直接阻止候选生成的关键问题。\n\n具体问题必须写入 clarification_questions。\n\n### 不应单独导致 clarification_needed=true 的情况\n\n1. 未明确应用场景，但设计任务已经明确。\n2. 未提供具体弹性模量、强度或延伸率阈值，但已经提出定性目标。\n3. 未指定允许元素清单，后续可从已确认的任务配置中读取。\n4. 未提供热处理温度、时间或加工制度。\n5. 未提供具体成本上限，但已经表达成本软偏好。\n6. 未指定工具或计算预算。\n7. 未指定期望验证等级。\n8. 尚无 Bo-Md、Mo 当量等描述符计算结果。\n9. 尚无文献、计算或实验数据支持设计假设。\n10. 存在非关键未解析信息。\n11. 应基于研究需求推导一条聚焦、非空的 literature_query，保留用户已指定的检索对象与限制；仅当用户明确要求不查文献时 literature_query 为空。\n\n### unparsed_requirements 处理\n\n1. 只记录无法可靠解析的用户原始要求。\n2. 不得把所有缺失信息都放入 unparsed_requirements。\n3. 非关键未解析内容应保留，但允许继续初步设计。\n4. 只有影响明确硬约束或候选生成必要条件时，才要求澄清。\n5. 部分需求存在歧义时，仍然应正常解析其他明确要求。\n\n## 十四、输出格式\n\n只输出一个合法 JSON 对象，不得使用 Markdown 代码块，不得输出 JSON 之外的解释。\n\n顶层字段必须且只能包含：\n\nalloy_system\nscenario_id\nscenario_description\ntask_type\nallowed_elements\npreferred_elements\nforbidden_elements\ncomposition_unit\ncomposition_total\ncandidate_count\nelement_constraints\nperformance_constraints\ndesign_objectives\nprocess_scope\nrequested_tools\nrequested_validation_level\nliterature_query\nbudget\nclarification_needed\nclarification_questions\nunparsed_requirements\nassumptions\n\n字段类型要求：\n\n1. alloy_system、scenario_id、scenario_description、task_type、composition_unit、composition_total、requested_validation_level、literature_query 均为字符串。\n2. allowed_elements、preferred_elements、forbidden_elements、design_objectives、process_scope、requested_tools、clarification_questions、unparsed_requirements、assumptions 均为字符串数组。\n3. candidate_count 为整数，必须为正整数。\n4. clarification_needed 为布尔值。\n5. element_constraints 为对象数组，每个对象必须且只能包含规定的八个字段。\n6. performance_constraints 为对象数组，每个对象必须且只能包含规定的九个字段。\n7. budget 为对象，必须包含 llm_calls、calphad_calls、notes 三个字段。\n8. llm_calls、calphad_calls 为整数，notes 为字符串数组。\n9. 所有规定字段必须存在，包括没有检索目标时的 literature_query。\n10. 没有内容的数组返回空数组。\n11. 没有对应数值的字符串返回空字符串。\n12. 不得输出预设字段之外的其他字段。\n13. 不得使用 Markdown 代码块。\n14. 不得输出注释、解释文字或其他非 JSON 内容。\n\n## 十五、最终执行原则\n\n1. 本节点只负责解析需求和生成检索查询，不负责生成候选材料。\n2. 本节点不负责制定钛合金专业物理约束。\n3. 不得将医用低模量 β 钛合金的专用规则应用于所有钛合金任务。\n4. 不得自行指定不同任务的元素范围、物理规则或性能阈值。\n5. 不得将用户期望的工具、验证等级与系统实际能力混淆。\n6. 不得编造文献、材料性能或计算结果。\n7. 输出必须严格符合 JSON 字段和数据类型要求。",
+          "template_content": "请解析以下材料研究需求，并按照预设JSON字段输出标准化约束：\n\n{{query}}"
+        },
+        "type": "LLM"
+      },
+      "node_1794399203044": {
+        "configs": {
+          "enable_history": false,
+          "enable_thinking": true,
+          "frequency_penalty": 0,
+          "history_size": 3,
+          "isDefaultName": false,
+          "max_tokens": 20000,
+          "model": {
+            "auth_id": "d1242b42-8121-497b-ba89-d1fee055d9b1",
+            "model_deployment_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+            "model_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+            "model_name": "deepseek-v4.1-flash-1017",
+            "model_type": "IMAGE-TO-TEXT"
+          },
+          "response_format": "json",
+          "safety_barrier": false,
+          "stream": false,
+          "temperature": 0.5,
+          "top_p": 0.5,
+          "vision": []
+        },
+        "id": "node_1794399203044",
+        "inputs": {
+          "all_passed": {
+            "description": "",
+            "name": "all_passed",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "boolean",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "all_passed",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "allowed_elements": {
+            "description": "",
+            "name": "allowed_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "allowed_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "alloy_system": {
+            "description": "",
+            "name": "alloy_system",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "alloy_system",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_decisions": {
+            "description": "",
+            "name": "candidate_decisions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_ids",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "reason",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "candidate_decisions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_list": {
+            "description": "",
+            "name": "candidate_list",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "候选编号",
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "合金体系",
+                  "name": "alloy_system",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素质量百分比组成",
+                  "name": "composition_wt_pct",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "设计依据",
+                  "name": "design_rationale",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "证据等级",
+                  "name": "evidence_level",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "预期相结构",
+                  "name": "expected_phase",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "验证方案",
+                  "name": "validation_plan",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_llm",
+                "ref_var_name": "candidate_list",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "checked_candidates": {
+            "description": "",
+            "name": "checked_candidates",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "alloy_system",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "composition_wt_pct",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "design_rationale",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "evidence_level",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "expected_phase",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "validation_plan",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "composition_sum",
+                  "required": true,
+                  "source": "user",
+                  "type": "number",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "element_check_passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "sum_check_passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "range_check_passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "issues",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "checked_candidates",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "clarification_needed": {
+            "description": "",
+            "name": "clarification_needed",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "boolean",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "clarification_needed",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "clarification_questions": {
+            "description": "",
+            "name": "clarification_questions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "clarification_questions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "composition_total": {
+            "description": "",
+            "name": "composition_total",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "composition_total",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "composition_unit": {
+            "description": "",
+            "name": "composition_unit",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "composition_unit",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "design_assumptions": {
+            "description": "",
+            "name": "design_assumptions",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_llm",
+                "ref_var_name": "assumptions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "design_objectives": {
+            "description": "",
+            "name": "design_objectives",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "design_objectives",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "element_constraints": {
+            "description": "",
+            "name": "element_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "元素符号，例如 Nb。",
+                  "name": "element",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "约束类型，如范围、下限、上限或目标值。",
+                  "name": "constraint_type",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素含量下限，没有则为空字符串。",
+                  "name": "lower_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素含量上限，没有则为空字符串。",
+                  "name": "upper_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "期望含量，没有则为空字符串。",
+                  "name": "target_value",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "约束强度，hard 表示硬约束，soft 表示软偏好，unclear 表示不明确。",
+                  "name": "strength",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "对应的用户原始需求表述。",
+                  "name": "source_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "解析状态，recognized 表示已识别，ambiguous 表示存在歧义。",
+                  "name": "parse_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "element_constraints",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "forbidden_elements": {
+            "description": "",
+            "name": "forbidden_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "forbidden_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_missing_evidence": {
+            "description": "",
+            "name": "literature_missing_evidence",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "missing_evidence",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_records": {
+            "description": "",
+            "name": "literature_records",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "records",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_status": {
+            "description": "",
+            "name": "literature_status",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "status",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_warnings": {
+            "description": "",
+            "name": "literature_warnings",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "warnings",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "missing_information": {
+            "description": "",
+            "name": "missing_information",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_llm",
+                "ref_var_name": "missing_information",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "performance_constraints": {
+            "description": "",
+            "name": "performance_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "性能指标名称，如弹性模量、屈服强度、抗拉强度、延伸率、密度、比强度、成本等。",
+                  "name": "property",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的约束类型，可选 range（范围）、minimum（最低要求）、maximum（最高要求）、target（目标值）。",
+                  "name": "constraint_type",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标允许范围的下限值，或用户要求达到的最低性能值。",
+                  "name": "lower_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标允许范围的上限值，或用户要求不得超过的最高性能值。",
+                  "name": "upper_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的目标数值，用于记录用户明确提出的期望达到值。",
+                  "name": "target_value",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的计量单位，如 GPa、MPa、%、g/cm³ 等。",
+                  "name": "unit",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "该性能约束的强度属性，hard（硬约束）、soft（软目标）、unclear（无法确定）。",
+                  "name": "strength",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能约束对应的用户原始表述",
+                  "name": "source_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标约束的解析状态，recognized（已识别）、ambiguous（存在歧义）。",
+                  "name": "parse_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "performance_constraints",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "physical_checks": {
+            "description": "",
+            "name": "physical_checks",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "reason",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "source",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "version",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "metrics_json",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "physical_checks",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "preferred_elements": {
+            "description": "",
+            "name": "preferred_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "preferred_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "process_scope": {
+            "description": "",
+            "name": "process_scope",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "process_scope",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "query": {
+            "description": "",
+            "name": "query",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_start",
+                "ref_var_name": "query",
+                "source": "system"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "requested_validation_level": {
+            "description": "",
+            "name": "requested_validation_level",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "requested_validation_level",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "requirement_assumptions": {
+            "description": "",
+            "name": "requirement_assumptions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "assumptions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "scenario_description": {
+            "description": "",
+            "name": "scenario_description",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "scenario_description",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "scenario_id": {
+            "description": "",
+            "name": "scenario_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "scenario_id",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "task_type": {
+            "description": "",
+            "name": "task_type",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "task_type",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "unparsed_requirements": {
+            "description": "",
+            "name": "unparsed_requirements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "unparsed_requirements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "validation_summary": {
+            "description": "",
+            "name": "validation_summary",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "validation_summary",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "候选方案审查",
+        "outputs": [
+          {
+            "description": "本次审查的总体状态",
+            "name": "review_status",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": "",
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "本次审查的总体结论",
+            "name": "review_summary",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "各候选方案的审查结果",
+            "name": "candidate_reviews",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "候选方案编号",
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "候选方案与用户需求的一致性",
+                  "name": "requirement_alignment",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "设计依据与证据充分性评价",
+                  "name": "evidence_assessment",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "缺乏证据支持的结论",
+                  "name": "unsupported_claims",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "候选方案需要关注的风险",
+                  "name": "risk_flags",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "当前候选方案的审查结论",
+                  "name": "review_conclusion",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "当前设计尚未解决的问题",
+            "name": "overall_limitations",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "逐候选记录设计理由中的成本排序主张及其证据状态。没有相关主张时返回空数组 []。",
+            "name": "cost_ranking_claims",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "候选方案编号",
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "从该候选的 design_rationale 逐字复制的连续片段。",
+                  "name": "claim_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "asserted 表示当作结论陈述，hypothesis 表示明确限定为假设、推测或待验证。",
+                  "name": "claim_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "supported 表示已有依据足以支撑排序，insufficient 表示依据缺失或不足，uncertain 表示无法判断依据是否充分。  ",
+                  "name": "evidence_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "简述现有依据、缺少什么，或为何无法判断。不能为空。",
+                  "name": "evidence_note",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {
+          "format_instruction": "",
+          "system_prompt": "你是 TiForge 钛合金材料设计可信智能体中的候选方案初步审查员。根据用户需求、候选设计和上游独立检查结果，判断候选是否符合已知约束，以及哪些结论仍需验证。项目范围是钛合金，应用行业和设计目标以本次任务为准。\n\n只做审查。不得重新生成候选、修改成分或约束、覆盖上游检查结果，也不得自行执行或声称已执行材料计算、性能预测或实验。\n\n一、读取输入\n\n- 使用 query、alloy_system、scenario_id、scenario_description、task_type 和 design_objectives 确定任务。\n- 使用 allowed_elements、preferred_elements、forbidden_elements、composition_unit、composition_total、element_constraints、performance_constraints 和 process_scope 核对约束。\n- 使用 clarification_needed、clarification_questions、unparsed_requirements、requirement_assumptions、design_assumptions、missing_information 和 requested_validation_level 识别未确认事项和验证边界。\n- 以 candidate_list 为候选原文来源。使用其中的 candidate_id、成分、设计理由、预期相和验证计划。\n- 以 candidate_list 为候选原文来源。按 candidate_id 对齐\n  checked_candidates、candidate_decisions 和 physical_checks。\n  checked_candidates 提供基础成分检查结果和 issues；\n  candidate_decisions 提供逐候选的物理守门判定；\n  physical_checks 提供各项规则的状态、原因和证据。\n  validation_summary 和 all_passed 用于理解整批情况。\n- 使用 literature_status、literature_records、literature_missing_evidence\n  和 literature_warnings 核对候选实际引用的文献证据。\n\n二、审查约束与检查结果\n\n1. 检查候选是否考虑研究目标、应用场景、允许和禁用元素、硬性含量限制、规定的成分单位和总量，以及明确提出的性能和工艺要求。检查软性偏好是否得到考虑，并指出明确的约束冲突。\n2. 严格执行 hard 约束。soft 约束仅作为设计偏好。保持已给出的软硬属性，不自行增加阈值或硬性要求。允许元素清单为空时，使用有效任务配置判断。配置也缺失时标记待复核。\n3. 按 candidate_id 优先采用 candidate_decisions[].status，并结合\n   physical_checks 说明判定原因。基础成分检查通过、物理守门拒绝、\n   物理守门待复核分别表述。不得根据 all_passed=false 或\n   checked_candidates[].passed=false 单独推断候选被拒绝。\n   明确的硬约束违规应保留；缺数据、缺配置或判定不明时标为待复核。\n\n4. 对每个候选检查 DATA_COVERAGE 和 NOVELTY。\n   有 OOD 标记时写入 risk_flags，说明超出参考数据覆盖范围。\n   新颖性缺少判定阈值时写“新颖性待定”。工具明确标记可能重新发现时，\n   保留该标记及对应参考记录。不要自行用距离设阈值或推断新颖性。\n   若候选编号无法对应，或缺少关键检查结果，标记受影响候选待复核，\n   并写明缺失的是哪项数据。旧回包如果缺少逐条判定，只按已明确给出的\n   检查结果和原因审查，不能把不明确的结果记为拒绝。\n5. 发现待确认的需求冲突、关键配置缺失或未解析需求时，在审查结论中说明其影响。已有结果确认硬约束违规时，如实保留该判定。\n\n三、按任务侧重审查\n\n- low_modulus：检查低模量设计依据、与强度和延伸率目标的权衡，以及相稳定性待验证项。\n- specific_strength：检查强度与密度的共同取舍、比强度目标和相关性能约束。\n- strength_ductility：检查强度与塑性的协同及权衡。\n- cost_constrained：检查元素选择、成本控制与性能目标的权衡，并按第五节记录成本比较主张。\n- corrosion_resistance：检查腐蚀环境、目标和测试条件是否明确。\n- composition_process_co_design：检查成分与加工、热处理状态之间的关系。\n- multi_objective：检查目标间的冲突和候选给出的取舍。\n- other：按用户实际提出的任务审查。\n- unspecified：指出需要人工确认的任务信息。\n\n只应用本任务相关的要求。缺少非必要指标或尚未进行常规科研验证，不能单独作为拒绝初步候选的理由。\n\n四、逐候选审查与整体判定\n\n逐候选检查设计依据、元素选择和证据。区分通用材料知识、候选设计假设、实际外部证据和已验证结果。没有适用的计算或实测结果时，不认定候选达到定量性能、相组成或工艺要求。不编造文献、DOI、价格、性能、工艺参数、计算结果或实验结论。\n\n当设计理由引用文献时，按记录编号和 DOI 在 literature_records 中定位\n原始记录，并核对成分、单位、工艺状态及证据能支持的结论。\n\n- 同一记录有 wt.% 和 at.% 两组数值时，逐组核对数值与单位。\n  发现单位写反、错引样品状态、错配数值，或把原样品实测值套到新候选上，\n  应指出具体错误，并写入 unsupported_claims。\n  候选即使标注 hypothesis，也仍需纠正可核实的引用错误。\n- 文献单位关系不明确，且候选已省略具体数值并说明待核对时，记录复核风险。\n  仅依据明确可见的证据判断，不自行补全单位或数值。\n- 文献状态为 needs_review、partial_success，或记录标为初步候选、\n  review_required=true 时，只把它作为待复核线索。同一 DOI 被多个候选\n  引用时，只算一个独立论文来源。\n- 禁用元素检查只说明候选是否符合给定元素约束。没有对应证据时，\n  将“无毒”“不含细胞毒性元素”“已具备生物相容性”等结论写入\n  unsupported_claims。\n- 有错误引用或无依据的确定性结论时，evidence_assessment 使用\n  unsupported_claims。若该问题需要修订设计依据，且没有明确硬约束冲突，\n  将候选标为 needs_review，并在 review_conclusion 写清修订内容。\n\n每个 candidate_reviews 对象必须且只能包含以下字段：\n\n- candidate_id：字符串，使用 candidate_list 中的原始编号。\n- requirement_alignment：字符串。consistent 表示符合已知需求和约束；needs_review 表示尚有要求或证据需要确认；conflict 表示与明确硬性要求冲突。\n- evidence_assessment：字符串。hypothesis_only 表示原文已将设计表述为假设且无可核实外部证据；source_attached_unverified 表示附有来源但尚未核实；unsupported_claims 表示存在缺少依据却被写成已验证事实的结论。设计理由详尽或模型自身推理不能作为外部证据。\n- unsupported_claims：字符串数组。记录错误引用、超出证据所支持范围的结论，\n以及无依据却写成确定事实的主张。每条指出候选具体写了什么、问题在哪里。\n- risk_flags：字符串数组，记录有依据的风险、缺失信息和待验证事项。\n- review_conclusion：字符串，简要说明候选与任务的匹配情况、主要问题和下一步验证要求。\n\n整体 review_status 只能取以下值：\n\n- inconsistent：存在明确的禁用元素、硬性成分约束违规，或候选与明确的硬性研究要求直接冲突。\n- needs_human_review：没有已确认的硬性冲突，但存在关键配置或证据缺失、上游待复核、结果无法对应、未解析需求，或无法确认是否满足关键要求。candidate_list 为空时也使用此状态。\n- preliminary_consistent：候选与已知需求基本一致，上游未发现明确硬约束违规，设计依据和假设表达合理，且没有影响本次初步审查的待复核事项。\n\n同时遇到明确硬性冲突和待复核事项时，整体标为 inconsistent，并在逐候选结果中分别记录原因。preliminary_consistent 只表示初步一致，材料性能与制备可行性仍按实际证据判定。\n\nreview_summary 用简短文字概括整体判定、主要原因及下一步行动。上游候选待复核时，说明是哪些已知条件未满足，例如检查数据缺失或正式判据未配置。\n\noverall_limitations 是字符串数组。只列出实际存在且候选共同面对的主要局限；候选独有的问题放在对应的 risk_flags 中。\n\n五、成本比较主张\n\n仅当 task_type 为 cost_constrained 时，从 candidate_list 的 design_rationale 中提取实际提出的候选相对成本判断，例如与另一候选或基准相比可能更便宜。只说某种元素通常较便宜、没有据此判断候选相对成本时，不记录。只表示无法比较时也不记录。每个候选可以有零条或多条不同主张。\n\n每个 cost_ranking_claims 对象必须且只能包含以下五个字符串字段：\n\n- candidate_id：与原候选编号完全一致。\n- claim_text：从该候选的 design_rationale 逐字复制最短的完整连续片段，保留比较对象、否定、条件和不确定性措辞。相邻句中的限定语会改变含义时，一并摘录。不得改写、拼接或修正原文。\n- claim_status：asserted 或 hypothesis。asserted 表示原文给出明确结论；hypothesis 表示原文将该比较限定为推测、假设或待验证判断。紧接的限定语确实指向同一排序时，按 hypothesis 处理；无关的笼统免责声明不改变判定。\n- evidence_status：supported、insufficient 或 uncertain。supported 表示实际可见的可比报价、适用成本模型或其他证据足以支持该比较；insufficient 表示依据缺失或明确不足；uncertain 表示有可能相关的依据，但无法判断其可比性、适用性或充分性。该字段与 claim_status 分开判断。\n- evidence_note：用一个非空句子说明可用依据、缺失数据或无法判断的原因。不得补造数据或来源。\n\n通用材料知识、对元素价格的印象和模型推理不能证明某个候选更便宜。无依据的确定性成本结论还应在该候选的 unsupported_claims、risk_flags 和 review_conclusion 中反映。成本证据不足本身不构成硬约束违规。\n\n六、最终输出\n\n只返回一个完整的原始 JSON 对象。不要输出 Markdown 围栏、解释文字或草稿。五个顶层字段必须全部出现，不能增加其他字段。结构如下，示例仅展示字段和类型；实际输出必须按本次输入逐候选填写，成本引文必须来自对应候选的原文。\n\n{\n  \"review_status\": \"needs_human_review\",\n  \"review_summary\": \"基础成分检查通过，缺少价格数据，成本结论待验证。\",\n  \"candidate_reviews\": [\n    {\n      \"candidate_id\": \"C02\",\n      \"requirement_alignment\": \"needs_review\",\n      \"evidence_assessment\": \"hypothesis_only\",\n      \"unsupported_claims\": [],\n      \"risk_flags\": [\"缺少可比原料价格\"],\n      \"review_conclusion\": \"补充价格和收得率数据后再核实成本差异。\"\n    }\n  ],\n  \"overall_limitations\": [\"缺少可比原料价格\"],\n  \"cost_ranking_claims\": [\n    {\n      \"candidate_id\": \"C02\",\n      \"claim_text\": \"V用量低于典型含4%V的Ti-6Al-4V思路，可能减少高价V带来的成本，但具体成本受原料价格和收得率影响\",\n      \"claim_status\": \"hypothesis\",\n      \"evidence_status\": \"insufficient\",\n      \"evidence_note\": \"当前未提供可比原料价格和收得率数据。\"\n    }\n  ]\n}\n\ncandidate_list 有候选时，每个候选必须且只对应一条 candidate_reviews 记录。candidate_list 为空时，candidate_reviews 和 cost_ranking_claims 均为 []，并在 review_summary 中说明缺少候选。非 cost_constrained 任务或未发现相对成本主张时，cost_ranking_claims 为 []。\n\n所有数组字段没有条目时使用 []。严格使用规定的字段名、类型和枚举，不能用 null 或字符串代替数组。字符串中的双引号和换行按 JSON 规则转义，不使用尾随逗号。审查结论简洁表达，不在输出中复述整条配方、设计理由、相组成假设或验证计划。",
+          "template_content": "\n请根据以下实际工作流数据，对钛合金候选方案进行初步审查。\n\n【原始研究需求】\n{{query}}\n\n【材料体系】\n{{alloy_system}}\n\n【应用场景】\n{{scenario_id}}\n\n【场景描述】\n{{scenario_description}}\n\n【设计任务类型】\n{{task_type}}\n\n【允许元素】\n{{allowed_elements}}\n\n【偏好元素】\n{{preferred_elements}}\n\n【禁止元素】\n{{forbidden_elements}}\n\n【成分单位】\n{{composition_unit}}\n\n【成分总量】\n{{composition_total}}\n\n【元素约束】\n{{element_constraints}}\n\n【性能约束】\n{{performance_constraints}}\n\n【研究目标】\n{{design_objectives}}\n\n【工艺范围】\n{{process_scope}}\n\n【需求解析假设】\n{{requirement_assumptions}}\n\n【是否需要澄清】\n{{clarification_needed}}\n\n【澄清问题】\n{{clarification_questions}}\n\n【未解析需求】\n{{unparsed_requirements}}\n\n【候选材料方案】\n{{candidate_list}}\n\n【候选设计假设】\n{{design_assumptions}}\n\n【缺失信息】\n{{missing_information}}\n\n【Python 检查结果】\n{{checked_candidates}}\n\n【检查摘要】\n{{validation_summary}}\n\n【整体检查状态】\n{{all_passed}}\n\n【期望验证等级】\n{{requested_validation_level}}\n\n【逐候选物理守门判定】\n{{candidate_decisions}}\n\n【物理守门规则明细】\n{{physical_checks}}\n\n【文献查询状态】\n{{literature_status}}\n\n【原始文献记录】\n{{literature_records}}\n\n【文献证据缺口】\n{{literature_missing_evidence}}\n\n【文献复核提示】\n{{literature_warnings}}\n\n请逐条核对候选引用的记录、成分单位、工艺状态和性能适用对象。\n最终摘要须区分基础成分通过、物理守门拒绝和物理守门待复核。\n如果上游标记 OOD 或新颖性待定，请在对应候选的风险中保留。\n\n请逐个审查候选方案，重点判断研究需求一致性、硬性约束、设计依据、证据充分性及待验证风险。\n\n特别注意：\n\n1. 不得修改上游已经确定的硬性约束。\n2. 不得将软性偏好认定为硬性违规。\n3. 不得推翻 Python 检查器的确定性检查结果。\n4. 不得将成分检查通过等同于材料物理性能已经验证。\n5. 如果候选数量为零或检查数据缺失，应标记为待人工复核。\n6. 不得编造任何文献、性能、计算或实验结果。\n\n严格按照系统提示词规定的 JSON 格式输出。"
+        },
+        "type": "LLM"
+      },
+      "node_1795156325217": {
+        "branches": [
+          {
+            "configs": {
+              "conditions": [
+                {
+                  "left": {
+                    "description": "",
+                    "name": "",
+                    "refWithout": false,
+                    "required": false,
+                    "source": "user",
+                    "type": "boolean",
+                    "value": {
+                      "content": {
+                        "ref_node_id": "node_1794213327708",
+                        "ref_var_name": "clarification_needed",
+                        "source": "user"
+                      },
+                      "hint": "",
+                      "type": "ref"
+                    }
+                  },
+                  "operator": "eq",
+                  "right": {
+                    "description": "",
+                    "name": "",
+                    "refWithout": false,
+                    "required": false,
+                    "source": "user",
+                    "type": "boolean",
+                    "value": {
+                      "content": true,
+                      "hint": "",
+                      "type": "literal"
+                    }
+                  }
+                }
+              ],
+              "logic": "and"
+            },
+            "id": "if"
+          },
+          {
+            "id": "default"
+          }
+        ],
+        "configs": {
+          "isDefaultName": true
+        },
+        "id": "node_1795156325217",
+        "inputs": {},
+        "name": "判断",
+        "prompts": {},
+        "type": "Branch"
+      },
+      "node_1795157120473": {
+        "configs": {
+          "code": "def main(args: dict) -> dict:\n    questions = args.get(\"questions\") or []\n    lines = [\"需要先确认以下问题，才能继续生成候选：\"]\n    if questions:\n        for question in questions:\n            lines.append(\"- \" + question)\n    else:\n        lines.append(\"- 请补充或确认本次设计的约束条件。\")\n    return {\"reply_text\": \"\\n\".join(lines)}",
+          "exec_env": "local",
+          "isDefaultName": false
+        },
+        "id": "node_1795157120473",
+        "inputs": {
+          "questions": {
+            "description": "",
+            "name": "questions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "clarification_questions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "整理澄清问题",
+        "outputs": [
+          {
+            "description": "展示给用户的回复文档",
+            "name": "reply_text",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {},
+        "type": "Code"
+      },
+      "node_1795157280936": {
+        "configs": {
+          "code": "def main(args: dict) -> dict:\n    candidates = args.get(\"candidate_list\") or []\n    clarification = (args.get(\"reply_text\") or \"\").strip()\n    if not candidates and clarification:\n        return {\"reply\": clarification}\n\n    decisions = {\n        row[\"candidate_id\"]: row\n        for row in (args.get(\"candidate_decisions\") or [])\n    }\n    reviews = {\n        row[\"candidate_id\"]: row\n        for row in (args.get(\"candidate_reviews\") or [])\n    }\n    labels = {\"pass\": \"通过\", \"reject\": \"拒绝\", \"needs_review\": \"待复核\"}\n\n    checks_by_candidate = {}\n    for check in args.get(\"physical_checks\") or []:\n        if check[\"rule_id\"] in (\"DATA_COVERAGE\", \"NOVELTY\"):\n            checks_by_candidate.setdefault(check[\"candidate_id\"], []).append(check)\n\n    sections = [(args.get(\"validation_summary\") or \"\").strip()]\n    for candidate in candidates:\n        candidate_id = candidate[\"candidate_id\"]\n        decision = decisions.get(candidate_id, {})\n        review = reviews.get(candidate_id, {})\n        state = labels.get(decision.get(\"status\"), \"判定缺失，待复核\")\n        lines = [\n            f\"{candidate_id}｜物理守门：{state}\",\n            f\"配方（wt.%）：{candidate['composition_wt_pct']}\",\n        ]\n\n        if decision.get(\"status\") != \"pass\" and decision.get(\"reason\"):\n            lines.append(f\"守门原因：{decision['reason']}\")\n\n        for check in checks_by_candidate.get(candidate_id, []):\n            if check.get(\"status\") != \"pass\" and check.get(\"reason\"):\n                label = \"数据覆盖\" if check[\"rule_id\"] == \"DATA_COVERAGE\" else \"新颖性\"\n                lines.append(f\"{label}：{check['reason']}\")\n\n        for claim in review.get(\"unsupported_claims\") or []:\n            lines.append(f\"证据问题：{claim}\")\n\n        if review.get(\"review_conclusion\"):\n            lines.append(f\"审查结论：{review['review_conclusion']}\")\n\n        sections.append(\"\\n\".join(lines))\n\n    review_summary = (args.get(\"review_summary\") or \"\").strip()\n    if review_summary:\n        sections.append(\"审查说明：\" + review_summary)\n\n    return {\"reply\": \"\\n\\n\".join(section for section in sections if section)\n            or \"本次没有可展示的候选结果。\"}",
+          "exec_env": "local",
+          "isDefaultName": false
+        },
+        "id": "node_1795157280936",
+        "inputs": {
+          "candidate_decisions": {
+            "description": "",
+            "name": "candidate_decisions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_ids",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "reason",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "candidate_decisions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_list": {
+            "description": "",
+            "name": "candidate_list",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "候选编号",
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "合金体系",
+                  "name": "alloy_system",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素质量百分比组成",
+                  "name": "composition_wt_pct",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "设计依据",
+                  "name": "design_rationale",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "证据等级",
+                  "name": "evidence_level",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "预期相结构",
+                  "name": "expected_phase",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "验证方案",
+                  "name": "validation_plan",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_llm",
+                "ref_var_name": "candidate_list",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_reviews": {
+            "description": "",
+            "name": "candidate_reviews",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "候选方案编号",
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "候选方案与用户需求的一致性",
+                  "name": "requirement_alignment",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "设计依据与证据充分性评价",
+                  "name": "evidence_assessment",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "缺乏证据支持的结论",
+                  "name": "unsupported_claims",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "候选方案需要关注的风险",
+                  "name": "risk_flags",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "当前候选方案的审查结论",
+                  "name": "review_conclusion",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794399203044",
+                "ref_var_name": "candidate_reviews",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "physical_checks": {
+            "description": "",
+            "name": "physical_checks",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "reason",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "source",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "version",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "metrics_json",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "physical_checks",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "reply_text": {
+            "description": "",
+            "name": "reply_text",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795157120473",
+                "ref_var_name": "reply_text",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "review_summary": {
+            "description": "",
+            "name": "review_summary",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794399203044",
+                "ref_var_name": "review_summary",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "validation_summary": {
+            "description": "",
+            "name": "validation_summary",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795423115147",
+                "ref_var_name": "validation_summary",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "整理输出结果",
+        "outputs": [
+          {
+            "description": "输出结果",
+            "name": "reply",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {},
+        "type": "Code"
+      },
+      "node_1795423115147": {
+        "configs": {
+          "id": "3eb5937399ca48cda9537860a1170ea6",
+          "name": "材料成分约束检查",
+          "name_en": "Empty Template",
+          "original_info": {
+            "description": "Base on empty template to create mcp service",
+            "name": "材料成分约束检查",
+            "name_en": "Empty Template"
+          },
+          "tool_name": "gate_check_physical",
+          "valid": true
+        },
+        "id": "node_1795423115147",
+        "inputs": {
+          "allowed_elements": {
+            "description": "",
+            "name": "allowed_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "allowed_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "alloy_system": {
+            "description": "",
+            "name": "alloy_system",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "alloy_system",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_count": {
+            "description": "",
+            "name": "candidate_count",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "integer",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "candidate_count",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_list": {
+            "description": "",
+            "name": "candidate_list",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_llm",
+                "ref_var_name": "candidate_list",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "clarification_needed": {
+            "description": "",
+            "name": "clarification_needed",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "boolean",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "clarification_needed",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "composition_total": {
+            "description": "",
+            "name": "composition_total",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "composition_total",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "composition_unit": {
+            "description": "",
+            "name": "composition_unit",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "composition_unit",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "element_constraints": {
+            "description": "",
+            "name": "element_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "element_constraints",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "forbidden_elements": {
+            "description": "",
+            "name": "forbidden_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "forbidden_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "scenario_id": {
+            "description": "",
+            "name": "scenario_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": "pspp-general-reference",
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          "task_id": {
+            "description": "",
+            "name": "task_id",
+            "reflection": false,
+            "required": false,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          "unparsed_requirements": {
+            "description": "",
+            "name": "unparsed_requirements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "unparsed_requirements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "材料成分约束检查",
+        "outputs": [
+          {
+            "name": "checked_candidates",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "alloy_system",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "composition_wt_pct",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "design_rationale",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "evidence_level",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "expected_phase",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "validation_plan",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "composition_sum",
+                  "required": true,
+                  "source": "user",
+                  "type": "number",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "element_check_passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "sum_check_passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "range_check_passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "passed",
+                  "required": true,
+                  "source": "user",
+                  "type": "boolean",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "issues",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "validation_summary",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "all_passed",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "boolean",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "alloy_system",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "task_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "scenario_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "status",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "rule_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "reason",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "version",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "candidate_decisions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_ids",
+                  "required": true,
+                  "schema": {
+                    "name": "",
+                    "type": "string"
+                  },
+                  "source": "user",
+                  "type": "array",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "reason",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "call_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "profile_version",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "profile_sha256",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "profile_purpose",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "name": "physical_checks",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "rule_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "reason",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "source",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "version",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "name": "metrics_json",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {},
+        "type": "Mcp"
+      },
+      "node_1795592328332": {
+        "configs": {
+          "exception_process": {
+            "handle_type": "interrupt",
+            "retry_times": 0,
+            "timeout": 900
+          },
+          "id": "5515d5e563044b5d84942a4755e7576b",
+          "name": "文献知识提取",
+          "name_en": "Empty Template",
+          "original_info": {
+            "description": "Base on empty template to create mcp service",
+            "name": "文献知识提取",
+            "name_en": "Empty Template"
+          },
+          "tool_name": "query_pspp_literature",
+          "valid": true
+        },
+        "id": "node_1795592328332",
+        "inputs": {
+          "literature_query": {
+            "description": "",
+            "name": "literature_query",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "literature_query",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "文献知识提取",
+        "outputs": [
+          {
+            "description": "",
+            "name": "status",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "dataset_version",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "query",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "records",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "missing_evidence",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "warnings",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "error_code",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "error_message",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "call_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "tool_version",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "elapsed_ms",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "integer",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "",
+            "name": "result_json",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "hint": "",
+              "type": "literal"
+            }
+          }
+        ],
+        "prompts": {},
+        "type": "Mcp"
+      },
+      "node_end": {
+        "configs": {
+          "enable_history": true,
+          "isStructMessage": false,
+          "is_stream_out": true,
+          "response_mode": "directResponse"
+        },
+        "id": "node_end",
+        "inputs": {
+          "reply": {
+            "description": "",
+            "name": "reply",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795157280936",
+                "ref_var_name": "reply",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "结束",
+        "outputs": [
+          {
+            "description": "最终输出",
+            "name": "response_content",
+            "reflection": false,
+            "required": true,
+            "source": "system",
+            "type": "string",
+            "value": {
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {
+          "response_template": "{{reply}}",
+          "struct_output_template": "{\n  \"answer\": \"{{_NODE_OUTPUT}}\"\n}"
+        },
+        "type": "End"
+      },
+      "node_llm": {
+        "configs": {
+          "descriptionText": "根据标准化约束输出候选方案",
+          "enable_history": false,
+          "enable_thinking": true,
+          "frequency_penalty": 0,
+          "history_size": 20,
+          "isDefaultName": false,
+          "max_tokens": 10000,
+          "model": {
+            "auth_id": "d1242b42-8121-497b-ba89-d1fee055d9b1",
+            "model_deployment_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+            "model_id": "maas-2559903f-267c-4b6b-9a13-797b106e4c50",
+            "model_name": "deepseek-v4.1-flash-1017",
+            "model_type": "IMAGE-TO-TEXT"
+          },
+          "response_format": "json",
+          "safety_barrier": false,
+          "stream": false,
+          "temperature": 0.5,
+          "top_p": 0.5,
+          "vision": []
+        },
+        "id": "node_llm",
+        "inputs": {
+          "allowed_elements": {
+            "description": "用户明确允许使用的元素",
+            "name": "allowed_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "allowed_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "alloy_system": {
+            "description": "材料体系标识，当前为 titanium_alloy",
+            "name": "alloy_system",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "alloy_system",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "assumptions": {
+            "description": "需求解析阶段采用的假设",
+            "name": "assumptions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "assumptions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "budget": {
+            "description": "用户提出的计算调用预算",
+            "name": "budget",
+            "reflection": false,
+            "required": true,
+            "schema": [
+              {
+                "description": "LLM 调用次数上限",
+                "name": "llm_calls",
+                "required": true,
+                "source": "user",
+                "type": "integer",
+                "value": {
+                  "default": "",
+                  "hint": "",
+                  "type": "generated"
+                }
+              },
+              {
+                "description": "CALPHAD 调用次数上限",
+                "name": "calphad_calls",
+                "required": true,
+                "source": "user",
+                "type": "integer",
+                "value": {
+                  "default": "",
+                  "hint": "",
+                  "type": "generated"
+                }
+              },
+              {
+                "description": "其他预算要求",
+                "name": "notes",
+                "required": true,
+                "schema": {
+                  "name": "",
+                  "type": "string"
+                },
+                "source": "user",
+                "type": "array",
+                "value": {
+                  "default": "",
+                  "hint": "",
+                  "type": "generated"
+                }
+              }
+            ],
+            "source": "user",
+            "type": "object",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "budget",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "candidate_count": {
+            "description": "要求生成的候选数量",
+            "name": "candidate_count",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "integer",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "candidate_count",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "clarification_needed": {
+            "description": "是否存在阻止候选生成的问题",
+            "name": "clarification_needed",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "boolean",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "clarification_needed",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "clarification_questions": {
+            "description": "需要用户确认的问题",
+            "name": "clarification_questions",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "clarification_questions",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "composition_total": {
+            "description": "成分百分比目标总量",
+            "name": "composition_total",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "composition_total",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "composition_unit": {
+            "description": "成分计量单位",
+            "name": "composition_unit",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "composition_unit",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "design_objectives": {
+            "description": "用户提出的研究目标",
+            "name": "design_objectives",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "design_objectives",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "element_constraints": {
+            "description": "各元素的含量约束及软硬属性",
+            "name": "element_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "元素符号，例如 Nb。",
+                  "name": "element",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "约束类型，如范围、下限、上限或目标值。",
+                  "name": "constraint_type",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素含量下限，没有则为空字符串。",
+                  "name": "lower_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素含量上限，没有则为空字符串。",
+                  "name": "upper_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "期望含量，没有则为空字符串。",
+                  "name": "target_value",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "约束强度，hard 表示硬约束，soft 表示软偏好，unclear 表示不明确。",
+                  "name": "strength",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "对应的用户原始需求表述。",
+                  "name": "source_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "解析状态，recognized 表示已识别，ambiguous 表示存在歧义。",
+                  "name": "parse_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "element_constraints",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "forbidden_elements": {
+            "description": "用户明确禁止使用的元素",
+            "name": "forbidden_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "forbidden_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_error_message": {
+            "description": "",
+            "name": "literature_error_message",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "error_message",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_missing_evidence": {
+            "description": "",
+            "name": "literature_missing_evidence",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "missing_evidence",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_records": {
+            "description": "",
+            "name": "literature_records",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "records",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_status": {
+            "description": "",
+            "name": "literature_status",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "status",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "literature_warnings": {
+            "description": "",
+            "name": "literature_warnings",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1795592328332",
+                "ref_var_name": "warnings",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "performance_constraints": {
+            "description": "性能指标的定量约束",
+            "name": "performance_constraints",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "性能指标名称，如弹性模量、屈服强度、抗拉强度、延伸率、密度、比强度、成本等。",
+                  "name": "property",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的约束类型，可选 range（范围）、minimum（最低要求）、maximum（最高要求）、target（目标值）。",
+                  "name": "constraint_type",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标允许范围的下限值，或用户要求达到的最低性能值。",
+                  "name": "lower_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标允许范围的上限值，或用户要求不得超过的最高性能值。",
+                  "name": "upper_bound",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的目标数值，用于记录用户明确提出的期望达到值。",
+                  "name": "target_value",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标的计量单位，如 GPa、MPa、%、g/cm³ 等。",
+                  "name": "unit",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "该性能约束的强度属性，hard（硬约束）、soft（软目标）、unclear（无法确定）。",
+                  "name": "strength",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能约束对应的用户原始表述",
+                  "name": "source_text",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "性能指标约束的解析状态，recognized（已识别）、ambiguous（存在歧义）。",
+                  "name": "parse_status",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "performance_constraints",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "preferred_elements": {
+            "description": "用户偏好使用的元素",
+            "name": "preferred_elements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "preferred_elements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "process_scope": {
+            "description": "用户提出的加工和热处理范围",
+            "name": "process_scope",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "process_scope",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "query": {
+            "description": "用户输入",
+            "name": "query",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_start",
+                "ref_var_name": "query",
+                "source": "system"
+              },
+              "type": "ref"
+            }
+          },
+          "requested_tools": {
+            "description": "用户明确要求使用的工具",
+            "name": "requested_tools",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "requested_tools",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "requested_validation_level": {
+            "description": "用户期望的验证等级",
+            "name": "requested_validation_level",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "requested_validation_level",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "scenario_description": {
+            "description": "用户提出的具体应用场景描述",
+            "name": "scenario_description",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "scenario_description",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "scenario_id": {
+            "description": "标准化应用场景标识",
+            "name": "scenario_id",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "scenario_id",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "task_type": {
+            "description": "钛合金设计任务类型",
+            "name": "task_type",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "task_type",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          },
+          "unparsed_requirements": {
+            "description": "尚未可靠解析的需求",
+            "name": "unparsed_requirements",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "content": {
+                "ref_node_id": "node_1794213327708",
+                "ref_var_name": "unparsed_requirements",
+                "source": "user"
+              },
+              "hint": "",
+              "type": "ref"
+            }
+          }
+        },
+        "name": "候选材料设计",
+        "outputs": [
+          {
+            "description": "候选β钛合金设计方案列表。每个对象包含 candidate_id（候选编号）、alloy_system（合金体系）、composition_wt_pct（各元素质量百分比组成，元素符号为键、数值为值）、design_rationale（设计依据）、evidence_level（证据等级）、expected_phase（预期相结构）和 validation_plan（后续验证方案）。",
+            "name": "candidate_list",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "schema": [
+                {
+                  "description": "候选编号",
+                  "name": "candidate_id",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "合金体系",
+                  "name": "alloy_system",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "元素质量百分比组成",
+                  "name": "composition_wt_pct",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "设计依据",
+                  "name": "design_rationale",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "证据等级",
+                  "name": "evidence_level",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "预期相结构",
+                  "name": "expected_phase",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                },
+                {
+                  "description": "验证方案",
+                  "name": "validation_plan",
+                  "required": true,
+                  "source": "user",
+                  "type": "string",
+                  "value": {
+                    "default": "",
+                    "hint": "",
+                    "type": "generated"
+                  }
+                }
+              ],
+              "type": "object"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "本次候选设计所采用的假设、默认条件、设计边界及尚未得到实验验证的内容。",
+            "name": "assumptions",
+            "reflection": false,
+            "required": true,
+            "source": "user",
+            "type": "string",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          },
+          {
+            "description": "当前研究需求中缺少的关键信息，例如目标性能指标、允许使用的合金元素、成分单位、实验条件及材料性能数据。",
+            "name": "missing_information",
+            "reflection": false,
+            "required": true,
+            "schema": {
+              "name": "",
+              "type": "string"
+            },
+            "source": "user",
+            "type": "array",
+            "value": {
+              "default": "",
+              "hint": "",
+              "type": "generated"
+            }
+          }
+        ],
+        "prompts": {
+          "system_prompt": "\n你是 TiForge 项目的候选钛合金设计智能体，负责根据用户研究需求、标准化任务约束及可用材料知识，提出初步钛合金候选方案。\n\n项目研究范围固定为钛合金，但不限定具体应用行业、合金类别或设计目标。\n\n你的任务是提出符合已知需求的候选成分方案，说明设计依据、研究假设及后续验证需求。\n\n当前工作属于材料科研辅助设计，不代表候选材料已经经过性能预测、专业计算或真实实验验证。\n\n## 一、输入信息\n\n你将接收以下信息：\n\n1. 原始研究需求 query。\n2. 材料体系 alloy_system。\n3. 应用场景 scenario_id、scenario_description。\n4. 设计任务 task_type。\n5. 允许元素 allowed_elements。\n6. 偏好元素 preferred_elements。\n7. 禁止元素 forbidden_elements。\n8. 成分单位 composition_unit。\n9. 成分总量 composition_total。\n10. 候选数量 candidate_count。\n11. 元素约束 element_constraints。\n12. 性能约束 performance_constraints。\n13. 研究目标 design_objectives。\n14. 工艺范围 process_scope。\n15. 用户指定工具 requested_tools。\n16. 期望验证等级 requested_validation_level。\n17. 预算 budget。\n18. 需求澄清状态 clarification_needed。\n19. 澄清问题 clarification_questions。\n20. 未解析需求 unparsed_requirements。\n21. 解析假设 assumptions。\n22. 后续由任务路由层提供的 task_configuration（如果已经接入）。\n23. 文献查询结果，包括文献状态 literature_status、PSPP 记录数组\n    literature_records、证据缺口 literature_missing_evidence、\n    复核提示 literature_warnings 和调用错误 literature_error_message。\n\n文献记录用于提供设计参考。候选配方仍须满足上游已经确认的任务约束。\n\n必须以结构化解析结果为主要依据，不能仅根据原始自然语言重新推断或改变已经识别的硬约束。\n\n## 二、设计任务识别\n\n根据 task_type 确定候选材料的设计方向。\n\n支持以下任务：\n\n1. low_modulus：低模量设计。\n2. specific_strength：高比强度设计。\n3. strength_ductility：强度与塑性协同设计。\n4. cost_constrained：成本约束设计。\n5. corrosion_resistance：耐腐蚀设计。\n6. composition_process_co_design：成分与工艺协同设计。\n7. multi_objective：多目标综合设计。\n8. other：其他明确的钛合金设计任务。\n\n要求：\n\n1. 根据 design_objectives 和 performance_constraints 组织设计思路。\n2. 区分主要目标、辅助目标、硬约束和软目标。\n3. 不得将某个应用场景直接等同于固定设计目标。\n4. 不得将低模量、β相稳定性或生物相容性要求自动应用于其他任务。\n5. 不得将某个任务中的专业规则直接迁移到其他任务。\n6. 对于尚未明确的设计任务，不得自行编造设计目标。\n\n## 三、元素选择与成分设计\n\n1. 优先使用 allowed_elements 中明确允许的元素。\n2. 严格遵守 forbidden_elements，不得在候选成分中使用禁止元素。\n3. 如果 allowed_elements 为空，必须检查是否存在有效的 task_configuration。\n4. task_configuration 中的元素范围必须来自已经确认的钛合金任务配置，不得由模型自行生成。\n5. 如果 allowed_elements 为空且没有有效的任务配置，不得生成候选成分，应返回空 candidate_list，并在 missing_information 中说明缺少经确认的元素范围。\n6. preferred_elements 表示用户的软性偏好，应在合理且不违反硬约束的前提下优先考虑。\n7. element_constraints 中的 hard 约束必须严格满足。\n8. element_constraints 中的 soft 约束用于设计倾向，不得擅自转换为硬性限制。\n9. 不得自行增加用户禁止的元素。\n10. 不得为了满足成分总量而随意添加未经允许的元素。\n\n成分设计要求：\n\n1. 默认采用 wt.%。\n2. 候选中所有元素含量之和必须等于 composition_total。\n3. composition_wt_pct 采用以下格式：\n\nTi:70,Nb:20,Zr:5,Sn:5\n\n4. 每个元素的含量必须是有效的非负数。\n5. 不得重复出现相同元素。\n6. 未明确允许使用的元素不得自行加入。\n7. 用户明确提出的硬性元素范围必须满足。\n8. 无法合理满足全部硬约束时，不得编造候选方案。\n\n## 四、性能目标与设计依据\n\n1. 根据 performance_constraints 设计候选成分。\n2. 根据 design_objectives 解释不同元素选择与研究目标之间的关系。\n3. 对于硬性性能要求，必须明确区分候选设计意图与实际达标结果。\n4. 如果没有适用的代理模型、专业计算或实验结果，不得声称候选已经满足定量性能指标。\n5. 不得编造弹性模量、屈服强度、抗拉强度、延伸率、密度、腐蚀速率或疲劳寿命等精确数值。\n6. 对于元素的一般性作用、相稳定性及性能影响，如果没有对应的文献、计算或实验依据，只能作为初步设计假设进行描述。不得将未经验证的元素作用表述为该候选材料已经实现的确定性能。\n7. 如果某项性能目标缺少可靠计算或实验支持，应在 design_rationale 或 missing_information 中明确说明。\n8. 不得编造文献、DOI、材料数据库记录、实验结果或计算结果。\n9.满足允许元素和禁用元素要求时，只描述配方符合哪些元素约束。对于生物医用任务，在没有相应证据时，不得声称候选“无毒”“不含细胞毒性元素”或“已具备生物相容性”。将相关验证写入 validation_plan。\n\n约束继承的强制规则：\n\n1. performance_constraints 是上游研究需求解析节点输出的正式性能约束，必须完整继承。\n2. 每条性能约束中的 property、constraint_type、lower_bound、upper_bound、target_value、unit 和 strength 均不得擅自修改。\n3. strength=hard 的性能约束必须始终保持为硬约束，不得重新解释。\n4. strength=soft 的性能约束只能作为设计偏好，不得升级为硬约束。\n5. 不得因为候选生成能力不足、缺少工具或缺少任务配置而改变原始约束的性质。\n6. 当无法满足或无法验证硬性性能要求时，应如实说明，不得宣称候选已经达标。\n7. 当因其他原因阻断候选生成时，assumptions 必须准确保留已经识别的硬约束和软目标，不得改变其性质。\n\n## 五、工艺与组织考虑\n\n1. 根据 process_scope 考虑用户指定的加工和热处理条件。\n2. 不得自行编造热处理温度、时间、变形量或其他具体工艺参数。\n3. 对于没有明确工艺信息的任务，可以提出需要进一步确定的工艺问题。\n4. expected_phase 用于说明可能的相结构、组织特征及其不确定性。\n5. 只有在相应钛合金类别和设计任务适用的情况下，才讨论 β 相稳定性、α相、α''马氏体或 ω 相等内容。\n6. 不得将未经验证的相结构判断描述为确定事实。\n7. 对于不能可靠判断的相结构，应明确说明需要进一步验证。\n\n## 六、候选数量控制\n\n1. 严格按照 candidate_count 生成候选方案。\n2. candidate_count 为正整数，不得自行限制为 1 至 2 个。\n3. 每个候选必须有唯一编号，按 C01、C02、C03 的顺序编号。\n4. 不得重复生成完全相同的候选成分。\n5. 不同候选应体现合理的成分差异或设计思路差异。\n6. 不得为了凑足数量而生成明显违反硬约束的方案。\n7. 如果无法满足用户要求的候选数量，应如实说明，并在 missing_information 中记录原因。\n\n## 七、设计假设与证据等级\n\nevidence_level 只能使用：\n\nhypothesis\n\n当前节点生成的候选属于初步设计假设。\n\n1. 没有可核实的文献、计算或实验依据时，必须使用 hypothesis。\n2. 不得将模型自身推理当成外部证据。\n3. 不得编造引用或来源。\n4. 如果已有可信文献数据或工具结果，必须严格依据实际输入，不得扩大证据所支持的结论。\n5. 对不确定的元素作用、相结构及性能影响，应明确说明。\n\n### 文献证据与成分单位\n\n1. 在 design_rationale 中引用文献时，注明 record_id、source_doi、\n   原样品的工艺状态 state，以及这条记录具体支持哪项设计选择。\n   引用只限于 literature_records 中实际收到的内容。\n\n2. 优先说明文献支持的合金体系、元素配伍或工艺线索。\n   如果设计理由只需要说明这些线索，可以省略参考配方的具体百分比。\n\n3. 必须引用具体成分时，先核对 comp_raw、composition_basis 和\n   source_loc。若一条记录同时出现 wt.% 和 at.%，只有在每组\n   数字与单位的对应关系明确时，才能分别引用。不得交换单位、\n   自行换算，或把文献配方直接当作新候选的 composition_wt_pct。\n   如果对应关系不明确，只引用可确认的合金体系、工艺和出处，\n   并在 missing_information 中写明“文献成分基准待核对”。\n\n4. 文献实测值只属于原样品及其工艺、测试条件。即使参考记录\n   与新候选属于同一合金体系，也不得将实测值或相结构结论\n   外推为新候选已达到的性能。\n\n5. 单条文献记录可以支持提出设计假设。对含量调整产生的因果\n   效果或候选设计哪条更稳定、模量更低，只有在有对应证据时\n   才能作出判断。当前节点生成的候选统一保留 hypothesis。\n\n6. literature_status 为 needs_review 或 partial_success 时，\n   相关记录只用于提出待复核的设计假设。即使顶层状态为 success，\n   单条记录的 review_required 为 true，或 data_status 为\n   “初步候选”时，仍须标明该记录待复核。\n\n7. null 表示本次没有可用值。只有证据明确写着“未报告”时，\n   才表述为原文未报告；其余情况按本次检索或提取的证据缺口处理。\n\n## 八、后续验证计划\n\nvalidation_plan 应结合具体任务提出可执行的后续验证建议。\n\n可根据任务选择：\n\n1. 文献检索与已有牌号对比。\n2. 成分与材料数据核查。\n3. 适用的物理描述符计算。\n4. 代理模型性能预测。\n5. CALPHAD 热力学计算。\n6. 显微组织与相组成分析。\n7. 力学性能测试。\n8. 腐蚀性能测试。\n9. 真实材料制备与实验验证。\n\n要求：\n\n1. 只提出适合当前任务的验证方法。\n2. 不得声称已经完成尚未执行的计算或实验。\n3. requested_tools 和 requested_validation_level 仅表示用户期望，不代表系统一定具备相应工具。\n4. 不得虚构 CALPHAD、代理模型或实验结果。\n5. 对于当前无法验证的内容，应说明后续需要补充的工具、数据或实验条件。\n6. 写验证计划时区分平衡相与亚稳相。CALPHAD 用于适用温度和\n   数据库条件下的平衡相评估。ω 相等亚稳相风险通过有出处的\n   适用规则提醒或后续表征核实。\n\n## 九、异常处理与阻断规则\n\n以下情况必须返回空 candidate_list：\n\n1. clarification_needed=true。\n2. 用户要求的成分单位无法满足当前 wt.% 设计接口。\n3. 允许元素范围为空且没有有效 task_configuration。\n4. 硬性元素约束相互矛盾，无法形成合法成分。\n5. 关键设计任务无法确定，且没有足够信息开展初步设计。\n6. 其他直接阻止候选生成的关键问题。\n\n发生阻断时：\n\n1. assumptions 记录已经确认的默认设置。\n2. missing_information 说明具体缺少的信息或需要解决的问题。\n3. 不得通过自行假设来绕过硬性约束。\n4. 不得为了输出候选而忽略 clarification_needed。\n\n对于非阻断性信息缺失：\n\n1. 可以生成初步候选。\n2. 必须明确标注相应设计假设。\n3. 必须在 missing_information 中记录重要缺失信息。\n4. 不得把非关键缺失信息错误解释为候选不合法。\n\n## 十、输出格式\n\n只输出一个合法 JSON 对象。\n\n顶层字段必须且只能包含：\n\ncandidate_list\nassumptions\nmissing_information\n\ncandidate_list 为对象数组。\n\n每个候选对象必须且只能包含以下七个字段：\n\ncandidate_id\nalloy_system\ncomposition_wt_pct\ndesign_rationale\nevidence_level\nexpected_phase\nvalidation_plan\n\n字段类型要求：\n\n1. candidate_id：字符串。\n2. alloy_system：字符串，记录候选的合金元素体系，例如 Ti-Nb-Zr-Sn。\n3. composition_wt_pct：字符串，记录质量百分比成分。\n4. design_rationale：字符串，记录设计依据、目标对应关系和不确定性。\n5. evidence_level：字符串，当前初步候选使用 hypothesis。\n6. expected_phase：字符串，记录可能的相结构或组织特征及其不确定性。\n7. validation_plan：字符串，记录后续验证计划。\n8. assumptions：字符串，记录本次设计的假设与限制。\n9. missing_information：字符串数组，记录重要缺失信息。\n\n所有字段必须存在。\n\n没有候选方案时，candidate_list 返回空数组。\n\n没有其他假设时，assumptions 返回空字符串。\n\n没有重要缺失信息时，missing_information 返回空数组。\n\n不得输出预设字段之外的其他字段。\n\n不得使用 Markdown 代码块。\n\n不得输出 JSON 以外的解释文字。\n\n## 十一、最终执行原则\n\n1. 只负责候选材料初步设计，不负责需求重新解析。\n2. 不得修改上游已经确认的硬性约束。\n3. 不得自行制定未经专业确认的物理约束。\n4. 不得将医用低模量钛合金专用规则应用于全部钛合金任务。\n5. 不得把候选生成等同于性能预测或材料发现。\n6. 不得编造材料性能、文献、计算和实验结果。\n7. 所有候选必须能够被后续结构化成分检查工具读取。\n8. 严格遵守规定的 JSON 字段和数据类型。",
+          "template_content": "\n请根据以下标准化研究需求，生成钛合金候选设计方案。\n\n【原始研究需求】\n{{query}}\n\n【材料体系】\n{{alloy_system}}\n\n【应用场景】\n{{scenario_id}}\n\n【场景描述】\n{{scenario_description}}\n\n【设计任务类型】\n{{task_type}}\n\n【允许元素】\n{{allowed_elements}}\n\n【偏好元素】\n{{preferred_elements}}\n\n【禁止元素】\n{{forbidden_elements}}\n\n【成分单位】\n{{composition_unit}}\n\n【成分总量】\n{{composition_total}}\n\n【候选数量】\n{{candidate_count}}\n\n【元素约束】\n{{element_constraints}}\n\n【性能约束】\n{{performance_constraints}}\n\n【研究目标】\n{{design_objectives}}\n\n【工艺范围】\n{{process_scope}}\n\n【用户指定工具】\n{{requested_tools}}\n\n【期望验证等级】\n{{requested_validation_level}}\n\n【计算预算】\n{{budget}}\n\n【是否需要澄清】\n{{clarification_needed}}\n\n【需要澄清的问题】\n{{clarification_questions}}\n\n【未解析需求】\n{{unparsed_requirements}}\n\n【需求解析假设】\n{{assumptions}}\n\n【文献状态】{{literature_status}}\n【文献记录】{{literature_records}}\n【证据缺口】{{literature_missing_evidence}}\n【复核提示】{{literature_warnings}}\n【调用错误】{{literature_error_message}}\n\n请按系统提示词使用上述文献记录。引用时，在 design_rationale\n中写明记录编号、DOI、原样品工艺状态和它支持的具体设计选择。\n如需引用具体成分，先核对每组数值对应的 wt.% 或 at.%。\n单位关系不明确时，省略该组成数值，并在 missing_information\n中记录“文献成分基准待核对”。\n\nneeds_review 或 partial_success 的记录仅作待复核线索。\nno_evidence 时，记录已检索但未找到相关证据。\nerror 时，记录文献调用失败及已提供的错误信息。\nnot_requested 表示本次未检索。\n如果任务明确要求先有文献证据才能设计，而当前证据不可用，\n请返回空 candidate_list，并说明缺口。\n\n请严格按照系统提示词完成候选设计，并只输出规定的 JSON 对象。"
+        },
+        "type": "LLM"
+      },
+      "node_start": {
+        "id": "node_start",
+        "inputs": {},
+        "name": "开始",
+        "outputs": [
+          {
+            "access_scope": "public",
+            "description": "用户输入",
+            "name": "query",
+            "reflection": false,
+            "required": true,
+            "source": "system",
+            "type": "string",
+            "value": {
+              "content": "",
+              "hint": "用户输入",
+              "type": "literal"
+            }
+          },
+          {
+            "description": "系统变量",
+            "field_type": "object",
+            "name": "sys",
+            "reflection": false,
+            "required": true,
+            "schema": [
+              {
+                "description": "会话历史消息",
+                "name": "conversation_history",
+                "required": true,
+                "schema": {
+                  "name": "",
+                  "schema": [
+                    {
+                      "description": "角色",
+                      "name": "role",
+                      "required": true,
+                      "source": "system",
+                      "type": "string",
+                      "value": {
+                        "content": "",
+                        "hint": "角色",
+                        "type": "literal"
+                      }
+                    },
+                    {
+                      "description": "消息内容",
+                      "name": "content",
+                      "required": true,
+                      "source": "system",
+                      "type": "string",
+                      "value": {
+                        "content": "",
+                        "hint": "消息内容",
+                        "type": "literal"
+                      }
+                    }
+                  ],
+                  "type": "object"
+                },
+                "source": "system",
+                "type": "array",
+                "value": {
+                  "content": [],
+                  "hint": "会话历史消息",
+                  "type": "literal"
+                }
+              },
+              {
+                "description": "当前系统时间",
+                "field_type": "input",
+                "name": "current_time",
+                "required": true,
+                "source": "system",
+                "type": "string",
+                "value": {
+                  "content": "",
+                  "hint": "当前系统时间",
+                  "type": "literal"
+                }
+              },
+              {
+                "description": "使用该工作流的唯一标识",
+                "field_type": "input",
+                "name": "user_id",
+                "required": true,
+                "source": "system",
+                "type": "string",
+                "value": {
+                  "content": "",
+                  "hint": "用户唯一标识",
+                  "type": "literal"
+                }
+              },
+              {
+                "description": "工作流对话id",
+                "field_type": "input",
+                "name": "conversation_id",
+                "required": true,
+                "source": "system",
+                "type": "string",
+                "value": {
+                  "content": "",
+                  "hint": "工作流对话id",
+                  "type": "literal"
+                }
+              },
+              {
+                "description": "会话轮次",
+                "field_type": "input",
+                "name": "dialogue_count",
+                "required": true,
+                "source": "system",
+                "type": "integer",
+                "value": {
+                  "content": "",
+                  "hint": "会话轮次",
+                  "type": "literal"
+                }
+              }
+            ],
+            "source": "system",
+            "type": "object",
+            "value": {
+              "content": {},
+              "hint": "系统变量",
+              "type": "literal"
+            }
+          }
+        ],
+        "prompts": {},
+        "type": "Start"
+      }
+    }
+  },
+  "definition_sha256": "daa127dd1ff038f58c976809fddc05930e6d4c8deed97433d91b77c680b0d172",
+  "schema": "tiforge-workflow-snapshot-v1",
+  "source": {
+    "dsl_schema": "V2.0",
+    "file": "workflow_TiForge_候选设计与筛选_20261128132000.jsonl",
+    "platform_metadata": {
+      "deploy_wf_version": 1795838782449,
+      "last_version_id": "1795838827597",
+      "published_at": 1795838827710,
+      "status": "published",
+      "updated_at": 1795838782449
+    },
+    "sha256": "6bbaa482fe293976f7cc208ef3926f3af4a05f701c20ae1a772a828b88672ac7"
+  },
+  "version": "v09",
+  "workflow": {
+    "id": "038a548e-bf48-46a8-bbe3-72f8a80d6943",
+    "name": "TiForge_候选设计与筛选"
+  }
+}

@@ -146,18 +146,26 @@ def validate_report(report, tool_evidence, runs, scope):
             raise ValueError("现有证据快照未包含字段绑定配置，需复核字段传递问题。")
 
 
-def build_agent_report(store, case_id, workflow_version, run_id):
+def build_agent_report(store, case_id, workflow_version, run_id, *, source="agentarts", prompt_rules=None):
     scope = {"case_id": case_id, "workflow_version": workflow_version}
     if run_id:
         scope["run_id"] = run_id
-    base = {**scope, "source": "agentarts", "run_ids": [], "status": "needs_review", "proposals": []}
+    base = {**scope, "source": source, "run_ids": [], "status": "needs_review", "proposals": []}
     allowed_ids = [item["run_id"] for item in store.list_runs(case_id, workflow_version)["runs"]]
     if not allowed_ids or (run_id and run_id not in allowed_ids):
         return {**base, "missing_evidence": ["本地证据快照中没有匹配的已授权运行。"]}
-    report, tool_evidence, trace = request_proposal(scope)
+    if run_id and store.runs[run_id]["capture_incomplete"]:
+        return {**base, "run_ids": [run_id],
+                "missing_evidence": ["目标运行的归档采集不完整。请重跑该用例并补采节点输入、输出和异常记录。"]}
+    if source == "model_agent":
+        from .model_agent import run_model_agent
+
+        report, tool_evidence, trace = run_model_agent(store, scope, allowed_ids, prompt_rules=prompt_rules)
+    else:
+        report, tool_evidence, trace = request_proposal(scope)
     try:
         validate_report(report, tool_evidence, [store.runs[key] for key in allowed_ids], scope)
     except ValueError as exc:
-        return {**base, "agentarts": trace, "missing_evidence": [str(exc)]}
+        return {**base, source: trace, "missing_evidence": [str(exc)]}
     keys = ("run_ids", "status", "proposals", "missing_evidence")
-    return {**base, **{key: report[key] for key in keys}, "agentarts": trace}
+    return {**base, **{key: report[key] for key in keys}, source: trace}

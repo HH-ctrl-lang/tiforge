@@ -2,13 +2,26 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from harness.core.agentarts import build_agent_report, request_proposal
 from harness.core.evidence import EvidenceStore, SCHEMA, export_run
 
 
 class AgentArtsTests(unittest.TestCase):
+    def test_model_agent_reads_local_key_and_prefers_environment(self):
+        with TemporaryDirectory() as directory:
+            settings = Path(directory) / "maas.local.json"
+            settings.write_text('{"api_key": " localhost-test-key "}', encoding="utf-8-sig")
+            with patch("harness.core.model_agent.LOCAL_SETTINGS", settings), patch.dict(
+                "os.environ", {"TIFORGE_MAAS_API_KEY": ""}
+            ), patch("harness.core.model_agent.getpass", side_effect=AssertionError("unexpected prompt")):
+                from harness.core.model_agent import read_api_key
+
+                self.assertEqual(read_api_key(), "localhost-test-key")
+                with patch.dict("os.environ", {"TIFORGE_MAAS_API_KEY": "override-test-key"}):
+                    self.assertEqual(read_api_key(), "override-test-key")
+
     def setUp(self):
         temporary = TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
@@ -86,3 +99,39 @@ class AgentArtsTests(unittest.TestCase):
         with patch("harness.core.agentarts.request_proposal", return_value=(self.report, records, {})):
             result = build_agent_report(self.store, **self.scope)
         self.assertEqual(result["status"], "needs_review")
+
+    def test_model_agent_executes_only_scoped_tools_and_validates_their_results(self):
+        calls = [
+            {"id": "outside", "type": "function", "function": {
+                "name": "read_run_evidence", "arguments": '{"run_id":"another-run"}',
+            }},
+            {"id": "evidence", "type": "function", "function": {
+                "name": "read_run_evidence", "arguments": '{"run_id":"tf-test","node":"requirements"}',
+            }},
+        ]
+        with patch.dict("os.environ", {"TIFORGE_MAAS_API_KEY": "test-key"}), patch(
+            "harness.core.model_agent.requests.Session.post"
+        ) as post:
+            def respond(_url, **kwargs):
+                messages = list(kwargs["json"]["messages"])
+                response = MagicMock()
+                response.__enter__.return_value = response
+                response.status_code = 200
+                if len(messages) == 2:
+                    message = {"role": "assistant", "tool_calls": calls}
+                elif len(messages) == 5:
+                    self.assertIn("not_allowed_in_this_investigation", messages[-2]["content"])
+                    self.assertIn(self.target["evidence_id"], messages[-1]["content"])
+                    message = {"role": "assistant", "content": "以下是修改建议。"}
+                else:
+                    self.assertEqual(len(messages), 6)
+                    self.assertIn("合法 JSON 对象", messages[-1]["content"])
+                    message = {"role": "assistant", "content": "```json\n" + json.dumps(self.report) + "\n```"}
+                response.json.return_value = {"choices": [{"message": message}]}
+                return response
+
+            post.side_effect = respond
+            result = build_agent_report(self.store, **self.scope, source="model_agent")
+        self.assertEqual(result["status"], "proposed")
+        self.assertEqual(result["model_agent"]["tool_calls"], 2)
+        self.assertEqual(post.call_count, 3)
