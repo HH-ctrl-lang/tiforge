@@ -5,10 +5,11 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
-from . import common
+from .. import semantic
+from . import common, reference_review
 from .common import check_composition, load_run, node_fields, read_rows
 
-EVALUATION_VERSION = "2"
+EVALUATION_VERSION = "4"
 FAILURE_TYPES = {
     "hard_constraint_violation",
     "out_of_domain",
@@ -26,6 +27,11 @@ FORMAT_REPLY = "整理输出结果"
 GATE_OUTCOMES = {"pass": "gate_passed", "reject": "gate_rejected", "needs_review": "gate_pending"}
 
 def validate_expected(expected, case_id):
+    if expected.get("route") == "reference_review":
+        return reference_review.validate(expected, case_id)
+    if "semantic_review" in expected and (type(expected["semantic_review"]) is not bool or
+                                         (expected["semantic_review"] and expected.get("route") != "design")):
+        raise ValueError(f"{case_id} 的 semantic_review 须为布尔值，仅设计用例可启用。")
     if expected.get("route") != "failure_handling":
         return common.validate_expected(expected, case_id)
     validate_failure_checks(expected.get("checks"), case_id)
@@ -356,7 +362,10 @@ def evaluate_archive(run, manifest, expected, engine="v01"):
             return _report("needs_review", "missing_workflow_status", ["缺少工作流最终状态。"], evidence)
         actual_status = "succeeded" if workflow_status == "success" else workflow_status
         expected_status = expected.get("workflow_status", "succeeded") if failure_handling else "succeeded"
-        if actual_status != expected_status:
+        component = expected["route"] == "reference_review" and expected["scope"] == "literature"
+        if component:
+            evidence["workflow_status"] = actual_status
+        if actual_status != expected_status and not (component and actual_status == "failed"):
             reason = "预期按规则停止，工作流最终状态不符。" if expected_status == "failed" else "工作流未成功完成。"
             if use_v01:
                 evidence["failure_nodes"] = [row["node_name"] for row in evidence.get("runtime_issues", [])]
@@ -369,10 +378,45 @@ def evaluate_archive(run, manifest, expected, engine="v01"):
         if failure_handling:
             status, issues = evaluate_failure_handling(nodes, expected["checks"])
             return _report(status, "failure_handling", issues, evidence)
+        if expected["route"] == "reference_review":
+            scope = expected["scope"]
+            result = _report("pass", "reference_review", [], evidence)
+            evidence["scope"] = scope
+            if scope == "literature" and node_fields(nodes, LITERATURE).get("status") not in ("success", "needs_review", "no_evidence"):
+                return _report("needs_review", "missing_literature", ["文献节点没有可核对的正常返回。"], evidence)
+            if "reference_fields" in expected:
+                status, detail = reference_review.record_check(
+                    node_fields(nodes, LITERATURE), expected["reference_fields"],
+                    allow_empty=expected.get("allow_empty_records", False))
+                evidence["reference_check"] = {"status": status, "detail": detail}
+                if status != "pass":
+                    result = _report(status, "reference_fields", [detail], evidence)
+            try:
+                packet = semantic.packet_for(run, nodes, expected)
+            except ValueError as exc:
+                result["findings"].append({"status": "needs_review", "code": "missing_review_subject",
+                                           "node": reference_review.SCOPES[scope], "detail": str(exc)})
+                if result["status"] == "pass":
+                    result["status"] = "needs_review"
+            else:
+                semantic.attach(result, run, packet)
+            return result
         if engine == "v00":
             status, issues = _evaluate_v00(nodes, expected)
-            return _report(status, "structural_check", issues, evidence)
-        return _evaluate_v01(run, nodes, expected, evidence)
+            result = _report(status, "structural_check", issues, evidence)
+        else:
+            result = _evaluate_v01(run, nodes, expected, evidence)
+        if expected.get("semantic_review") or expected["route"] == "reference_review":
+            try:
+                packet = semantic.packet_for(run, nodes, expected)
+            except ValueError as exc:
+                result["findings"].append({"status": "needs_review", "code": "semantic_review",
+                                           "node": DESIGN, "detail": str(exc)})
+                if result["status"] == "pass":
+                    result["status"] = "needs_review"
+            else:
+                semantic.attach(result, run, packet, node_fields(nodes, LITERATURE))
+        return result
     except (OSError, ValueError) as exc:
         return _report("needs_review", "unreadable_evidence", [str(exc)], evidence)
 
@@ -400,7 +444,20 @@ def main():
         cases = load_cases(args.cases)
         manifest = load_run(args.run, cases)
         case_id = manifest["case_id"]
-        status, issues = evaluate_run(args.run, manifest, cases[case_id]["expected"], args.engine)
+        expected = cases[case_id]["expected"]
+        semantic_result = None
+        reference_result = None
+        composition_result = None
+        citation_result = None
+        if expected.get("semantic_review") or expected["route"] == "reference_review":
+            result = evaluate_archive(args.run, manifest, expected, args.engine)
+            status, issues = result["status"], result["findings"]
+            semantic_result = result["evidence"].get("semantic")
+            reference_result = result["evidence"].get("reference_check")
+            composition_result = result["evidence"].get("rationale_composition")
+            citation_result = result["evidence"].get("citation_claims")
+        else:
+            status, issues = evaluate_run(args.run, manifest, expected, args.engine)
     except (OSError, ValueError) as exc:
         report = {"status": "needs_review", "issues": [str(exc)]}
     else:
@@ -414,7 +471,17 @@ def main():
             "status": status,
             "issues": issues,
         }
+        if citation_result is not None:
+            report["citation_claims"] = citation_result
+        if composition_result is not None:
+            report["rationale_composition"] = composition_result
+        if reference_result is not None:
+            report["reference_check"] = reference_result
+        if semantic_result is not None:
+            report["semantic"] = semantic_result
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return {"pass": 0, "fail": 1, "needs_review": 2}[report["status"]]
 
 
+if __name__ == "__main__":
+    raise SystemExit(main())
