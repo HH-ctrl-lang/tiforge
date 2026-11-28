@@ -20,7 +20,7 @@ Harness 读取 [logging 归档](../logging/README.md)，检查内环工作流的
 每行一个 JSON 对象。设计用例模板如下，候选数量、元素清单和语义开关按用例要求填写。
 
 ```json
-{"case_id":"<用例ID>","inputs":{"query":"<工作流输入文本>"},"expected":{"route":"design","candidate_count":2,"allowed_elements":["<允许元素符号>"],"semantic_review":true}}
+{"case_id":"<用例ID>","inputs":{"query":"<工作流输入文本>"},"expected":{"route":"design","candidate_count":2,"allowed_elements":["<允许元素符号>"]}}
 ```
 
 | 字段                 | 含义                                                                                                                                          |
@@ -33,7 +33,7 @@ Harness 读取 [logging 归档](../logging/README.md)，检查内环工作流的
 | `candidate_count`  | 设计用例要求的候选数，填写正整数                                                                                                              |
 | `allowed_elements` | 设计用例允许的元素，填写非空字符串数组                                                                                                        |
 | `literature`       | 设计用例可选的文献约束。`status` 为预期工具状态，`record_id` 为指定记录，`source_doi` 与记录 ID 配合核对返回的 DOI 及该记录的待复核标记 |
-| `semantic_review`  | 设计用例可选的布尔开关。设为 `true` 后纳入独立模型判定，v01 默认套件的设计用例已开启                                                        |
+| `semantic_review`  | 设计用例可选的布尔开关。v01 默认开启，显式填 `false` 时仅执行原有检查                                                        |
 
 ## 运行、复评和对比
 
@@ -68,7 +68,7 @@ python -m harness v00 --cases '<历史用例文件.jsonl>' --baseline '<基线�
 
 ### 评价配置与报告
 
-当前 v01 默认套件的设计用例包含结构检查和逐候选的设计理由、文献引用检查。自定义设计用例设置 `expected.semantic_review: true` 以执行完整检查。评价命令会先读取归档中的 `semantic_review.json`，缺少时从本次归档提取评价材料，调用独立模型并将结果写回该次归档。后续复评会核对材料指纹并复用判定。更改用例判据、待评材料或希望重新调用模型时，先另存旧判定文件。
+v01 的默认套件和自定义设计用例均自动执行结构检查、设计理由检查和文献引用检查。评价命令会先读取归档中的 `semantic_review.json`，缺少时从本次归档提取评价材料，调用独立模型并将结果写回该次归档。后续复评会核对材料指纹并复用判定。更改用例判据、待评材料或希望重新调用模型时，先另存旧判定文件。
 
 模型调用使用 `deepseek-v4.1-flash-1017`。在项目根目录的 `maas.local.json` 配置 `api_key`，之前已经在群里发过可以直接复制来使用，该文件由 Git 忽略。已设置的 `TIFORGE_MAAS_API_KEY` 优先。
 

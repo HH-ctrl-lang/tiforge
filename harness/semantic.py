@@ -256,11 +256,11 @@ def main():
                         help="可选的独立评价命令，放在末尾；标准输入读取材料 JSON，标准输出返回评语 JSON")
     args = parser.parse_args()
     try:
-        cases = load_cases(args.cases)
+        cases = load_cases(args.cases, default_semantic=True)
         manifest = load_run(args.run, cases)
         expected = cases[manifest["case_id"]]["expected"]
         if expected.get("semantic_review") is not True and expected.get("route") != "reference_review":
-            raise ValueError("请在设计用例的 expected 中启用 semantic_review。")
+            raise ValueError("此用例未启用语义评价。")
         packet = packet_for(args.run, list(read_rows(args.run / "nodes.jsonl")), expected)
         output = packet
         if args.maas:

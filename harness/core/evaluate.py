@@ -39,8 +39,14 @@ def validate_expected(expected, case_id):
         raise ValueError(f"{case_id} 的 workflow_status 必须是 succeeded 或 failed。")
 
 
-def load_cases(path):
-    return common.load_cases(path, validate=validate_expected)
+def load_cases(path, *, default_semantic=False):
+    cases = common.load_cases(path, validate=validate_expected)
+    if default_semantic:
+        for case in cases.values():
+            expected = case["expected"]
+            if expected["route"] == "design":
+                expected.setdefault("semantic_review", True)
+    return cases
 
 
 def validate_failure_checks(checks, case_id):
@@ -449,7 +455,7 @@ def main():
     parser.add_argument("--offline", action="store_true", help="仅使用归档中已有的独立评价结果")
     args = parser.parse_args()
     try:
-        cases = load_cases(args.cases)
+        cases = load_cases(args.cases, default_semantic=args.engine == "v01")
         manifest = load_run(args.run, cases)
         case_id = manifest["case_id"]
         expected = cases[case_id]["expected"]

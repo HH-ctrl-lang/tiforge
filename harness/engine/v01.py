@@ -111,7 +111,7 @@ def run(args, parser):
     if any(comparison_args) and not all(comparison_args):
         parser.error("对照时需要同时提供 --candidate、--target-case 和 --target-finding。")
     try:
-        cases = load_cases(args.cases)
+        cases = load_cases(args.cases, default_semantic=True)
         archive = args.archive
         if args.run_case is not None:
             if args.run_case not in cases:
