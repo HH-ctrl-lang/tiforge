@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v06",
+  "workflow_version": "v09",
+  "harness_version": "v01",
+  "case_id": "ti001-evidence",
+  "session_id": "b3f6c80f-2574-45e0-8c55-de3db97e6c75",
+  "request_id": "d5ec78c9-e47c-492f-89fd-9b4f64ff123f",
+  "requested_at": "2026-11-28T13:35:51.839522+08:00",
+  "inputs": {
+    "query": "设计两个用于骨科植入物的低模量 β 钛合金候选。先查询 Ti001 的完整 PSPP 信息并保留 DOI，作为待复核参考。只允许 Ti、Nb、Zr、Ta、O，禁止 V、Al、Ni，成分为 wt.%、总和 100%。"
+  }
+}

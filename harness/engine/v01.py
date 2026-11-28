@@ -25,12 +25,12 @@ PROPOSALS = {
 }
 
 
-def audit(cases, directory):
+def audit(cases, directory, *, auto_judge=False):
     batch, version = load_batch(directory, cases)
     results = {}
     proposals = {}
     for case_id, (run, manifest) in batch.items():
-        result = evaluate(run, manifest, cases[case_id]["expected"])
+        result = evaluate(run, manifest, cases[case_id]["expected"], auto_judge=auto_judge)
         results[case_id] = result
         for code in {finding["code"] for finding in result["findings"] if finding["status"] == "fail"}:
             if code in PROPOSALS:
@@ -82,6 +82,7 @@ def configure(parser):
     parser.add_argument("--candidate", type=Path, help="可选的独立候选版本归档")
     parser.add_argument("--target-case", help="对照时指定目标用例")
     parser.add_argument("--target-finding", help="对照时指定基线报告中的目标问题代码")
+    parser.add_argument("--offline", action="store_true", help="仅使用归档中已有的独立评价结果")
     parser.set_defaults(run=run)
 
 
@@ -119,11 +120,12 @@ def run(args, parser):
             # Logging returns 1 for a diagnosed anomaly. Its archive can still be evaluated.
             if outcome.returncode not in (0, 1):
                 return outcome.returncode
-        report = audit(cases, archive)
+        report = audit(cases, archive, auto_judge=not args.offline)
         if run_live:
             report["archive_directory"] = str(archive)
         if args.candidate:
-            report = compare(report, audit(cases, args.candidate), args.target_case, args.target_finding)
+            candidate = audit(cases, args.candidate, auto_judge=not args.offline)
+            report = compare(report, candidate, args.target_case, args.target_finding)
     except (OSError, ValueError) as exc:
         parser.exit(2, f"无法评估归档：{exc}\n")
     print(json.dumps(report, ensure_ascii=False, indent=2))

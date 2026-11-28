@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v06",
+  "workflow_version": "v09",
+  "harness_version": "v01",
+  "case_id": "nb-conflict",
+  "session_id": "23c8aeb1-d2b4-4769-a8a4-026a5ece420e",
+  "request_id": "cdcb2d5f-5281-4f59-811c-5bff1c34f794",
+  "requested_at": "2026-11-28T13:40:27.250742+08:00",
+  "inputs": {
+    "query": "设计两个低模量 β 钛合金候选，成分为 wt.%、总和 100%。硬约束：必须包含 Nb，同时禁止使用 Nb。"
+  }
+}

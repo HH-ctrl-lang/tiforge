@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v06",
+  "workflow_version": "v09",
+  "harness_version": "v01",
+  "case_id": "ti999-no-evidence",
+  "session_id": "63eb50a2-e37f-434d-8a23-e0cf7cff4693",
+  "request_id": "3839a5cc-7a3b-4bc9-bbd8-fd82732fc752",
+  "requested_at": "2026-11-28T13:37:38.215520+08:00",
+  "inputs": {
+    "query": "设计两个用于骨科植入物的低模量 β 钛合金候选。文献参考仅限 Ti999，如找不到请如实说明证据缺口，仍可给出待验证候选。只允许 Ti、Nb、Zr、Ta、O，禁止 V、Al、Ni，成分为 wt.%、总和 100%。"
+  }
+}

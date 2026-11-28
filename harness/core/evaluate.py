@@ -340,7 +340,7 @@ def _report(status, code, details, evidence):
     }
 
 
-def evaluate_archive(run, manifest, expected, engine="v01"):
+def evaluate_archive(run, manifest, expected, engine="v01", *, auto_judge=False):
     """Return one verdict with the structured evidence used by Harness."""
     if engine not in ("v00", "v01"):
         raise ValueError(f"未知的评测版本：{engine!r}。")
@@ -399,7 +399,7 @@ def evaluate_archive(run, manifest, expected, engine="v01"):
                 if result["status"] == "pass":
                     result["status"] = "needs_review"
             else:
-                semantic.attach(result, run, packet)
+                semantic.attach(result, run, packet, auto_judge=auto_judge)
             return result
         if engine == "v00":
             status, issues = _evaluate_v00(nodes, expected)
@@ -415,7 +415,7 @@ def evaluate_archive(run, manifest, expected, engine="v01"):
                 if result["status"] == "pass":
                     result["status"] = "needs_review"
             else:
-                semantic.attach(result, run, packet, node_fields(nodes, LITERATURE))
+                semantic.attach(result, run, packet, node_fields(nodes, LITERATURE), auto_judge=auto_judge)
         return result
     except (OSError, ValueError) as exc:
         return _report("needs_review", "unreadable_evidence", [str(exc)], evidence)
@@ -439,6 +439,7 @@ def main():
     parser.add_argument("--run", type=Path, required=True, help="要评价的单个 tf-* 归档目录")
     parser.add_argument("--engine", choices=("v00", "v01"), default="v01",
                         help="设计和澄清用例使用的 Harness 规则版本，默认 v01")
+    parser.add_argument("--offline", action="store_true", help="仅使用归档中已有的独立评价结果")
     args = parser.parse_args()
     try:
         cases = load_cases(args.cases)
@@ -450,7 +451,8 @@ def main():
         composition_result = None
         citation_result = None
         if expected.get("semantic_review") or expected["route"] == "reference_review":
-            result = evaluate_archive(args.run, manifest, expected, args.engine)
+            result = evaluate_archive(args.run, manifest, expected, args.engine,
+                                      auto_judge=not args.offline)
             status, issues = result["status"], result["findings"]
             semantic_result = result["evidence"].get("semantic")
             reference_result = result["evidence"].get("reference_check")

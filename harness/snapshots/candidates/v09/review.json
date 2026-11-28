@@ -1,74 +1,39 @@
 {
   "stage": "pending_import",
-  "proposal": {
-    "case_id": "industrial-cost",
-    "workflow_version": "v08",
-    "run_id": "tf-20261126-194923-da3b059e28d9",
-    "source": "model_agent",
-    "run_ids": [
-      "tf-20261126-194923-da3b059e28d9"
-    ],
-    "status": "proposed",
-    "proposals": [
-      {
-        "target_node": "研究需求解析",
-        "target_field": "outputs.literature_query",
-        "evidence_ids": [
-          "ev-3cf184081bd321d0400e7da278e636e104fe6840264349d306da8afabd66998f",
-          "ev-aef0976ac3f785c983f6902f4cfeb4b0a3c767a28986ec90f5dadaca07bb4c50",
-          "ev-4851b771244b782aa933e86e5e19a3b7259b9db23650d15a2145fc1a26b80aac",
-          "ev-dacc33f5897389573be1f0c2fdf18353955d1914841ab40f78674ac6c03d7e4a",
-          "ev-e0cc3520e434976a79fca85eddb4d6df4fc99b0c065a9aa08d9faaebc621fef5"
-        ],
-        "draft_change": "需求解析节点在 clarification_needed=false 且进入设计并需要检索时，应保证 outputs.literature_query 为非空聚焦查询，不得输出空字符串导致下游文献节点收到空查询。",
-        "acceptance": [
-          "回归中文献知识提取节点收到的 inputs.literature_query 等于需求解析输出的非空 literature_query",
-          "文献知识提取节点不再返回 outputs.error_code=EMPTY_QUERY"
-        ],
-        "prompt_edits": {
-          "253": "6. 当用户已指定检索对象、限制条件时应保留并据此推导一条聚焦、非空的 literature_query；仅在用户明确要求不查文献时 literature_query 返回空字符串 \"\"，不得使用 null、数组、对象或占位文字。",
-          "337": "11. 应基于研究需求推导一条聚焦、非空的 literature_query，保留用户已指定的检索对象与限制；仅当用户明确要求不查文献时 literature_query 为空。"
-        }
-      }
-    ],
-    "missing_evidence": [
-      "缺少研究需求解析节点的提示词快照，无法解释 outputs.literature_query 为空的具体成因（该快照并非提出行为约束的前提）。"
-    ],
-    "model_agent": {
-      "model": "deepseek-v4.1-flash-1017",
-      "tool_calls": 4
-    }
-  },
+  "baseline": "已部署 v09",
+  "case_id": "industrial-cost",
+  "run_id": "tf-20261128-131828-33f72b6d4159",
+  "method": "根据运行证据及提示词冲突人工修订",
   "diff": {
     "baseline": {
-      "version": "v08",
-      "definition_sha256": "cecc3dfd3a0b0ab6ac01d8b907e5c00bd0094014fdb2289ed7efdb6c4858180d",
+      "version": "v09",
+      "definition_sha256": "daa127dd1ff038f58c976809fddc05930e6d4c8deed97433d91b77c680b0d172",
       "source": {
         "dsl_schema": "V2.0",
-        "file": "workflow_TiForge_候选设计与筛选_20261128111443.jsonl",
+        "file": "workflow_TiForge_候选设计与筛选_20261128132000.jsonl",
         "platform_metadata": {
-          "deploy_wf_version": 1795628501204,
-          "last_version_id": "1795630143840",
-          "published_at": 1795630143963,
+          "deploy_wf_version": 1795838782449,
+          "last_version_id": "1795838827597",
+          "published_at": 1795838827710,
           "status": "published",
-          "updated_at": 1795628501204
+          "updated_at": 1795838782449
         },
-        "sha256": "2360bd95c64cd48026a20e469756c8cfdc3a84d01963447bfc75ac763f098079"
+        "sha256": "6bbaa482fe293976f7cc208ef3926f3af4a05f701c20ae1a772a828b88672ac7"
       }
     },
     "candidate": {
       "version": "v09",
-      "definition_sha256": "75262bdfa7336c0aeba1cc754073ccb60a9cb2491cd3a08b584824619d010693",
+      "definition_sha256": "e89c885f65f64620852bb62e320f84d60c358f2e8e265ddd46359a0de0c380eb",
       "source": {
         "file": "workflow-v09.jsonl",
-        "sha256": "1bd3624c58c9c4b695782583050f0f2ce5aba568e7d6d86d826dbde0fbff5963",
+        "sha256": "deb7e19de2ddcedcb4d8649fa24ed6409b3d79a6a5cc3a9239ccbb144b927e7a",
         "dsl_schema": "V2.0",
         "platform_metadata": {
           "status": "published",
-          "last_version_id": "1795630143840",
-          "deploy_wf_version": 1795628501204,
-          "published_at": 1795630143963,
-          "updated_at": 1795628501204
+          "last_version_id": "1795838827597",
+          "deploy_wf_version": 1795838782449,
+          "published_at": 1795838827710,
+          "updated_at": 1795838782449
         }
       }
     },
@@ -80,23 +45,23 @@
           "system_prompt": [
             "--- baseline/system_prompt",
             "+++ candidate/system_prompt",
-            "@@ -250,7 +250,7 @@",
+            "@@ -246,7 +246,7 @@",
+            " 处理规则：",
+            " ",
+            " 1. 用户明确要求检索、参照或核实某条文献记录、某个牌号、合金体系或研究证据时，将该目标改写成一条独立、简洁的检索语句。",
+            "-2. 用户未明确要求检索，但在设计任务中明确给出了作为设计依据的牌号、合金体系或工艺状态时，可以围绕该依据生成单目标查询。仅给出候选数量、允许元素清单或泛化目标时，若无法确定要查的证据，返回空字符串。",
+            "+2. 用户未明确要求检索时，基于其设计需求中给出的合金体系、允许元素、应用场景和设计目标，选择一个最相关的检索目标，生成简洁的非空 literature_query。不得编造用户未提供的具体牌号、记录编号、工艺参数或性能值。",
             " 3. 保留用户给出的记录编号、DOI、牌号、合金体系、工艺状态和指标名称。只保留与该检索目标直接相关的信息，不得自行编造或补全记录编号、DOI、工艺参数或性能值。",
             " 4. 同一记录或同一样品状态的完整 PSPP 信息可以作为一个查询目标。不同记录、不同牌号或不同工艺状态应视为不同目标，不得拼成一条联合查询。",
             " 5. 用户提出多个独立检索目标时，只输出一个。优先选用户明确指定优先检索的目标，未指定优先级时选最先明确提出的检索目标。其他明确要求继续按原有字段规则保留，不得把本次单目标查询表述为已覆盖全部文献要求。",
-            "-6. 用户未提供可明确定位的检索目标，或明确要求不查文献时，literature_query 返回空字符串 \"\"。不得使用 null、数组、对象或占位文字。",
-            "+6. 当用户已指定检索对象、限制条件时应保留并据此推导一条聚焦、非空的 literature_query；仅在用户明确要求不查文献时 literature_query 返回空字符串 \"\"，不得使用 null、数组、对象或占位文字。",
-            " 7. literature_query 为空不单独触发 clarification_needed=true，也不构成未解析需求。文献是否存在、证据是否充分以及是否需要人工复核，由子工作流判断。",
+            "@@ -258,7 +258,7 @@",
+            " - “查询 Ti001 的完整 PSPP 信息” → \"查询Ti001的完整PSPP信息\"",
+            " - “参考铸态 Ti-Nb-Zr-Ta-O 的文献弹性模量，设计两个低模量候选” → \"查询铸态Ti-Nb-Zr-Ta-O的文献弹性模量及测试条件\"",
+            " - “先查 Ti056，再查 Ti001” → \"查询Ti056的完整PSPP信息\"",
+            "-- “生成两个低成本钛合金候选” → \"\"",
+            "+- “生成两个低成本钛合金候选” → \"查询低成本钛合金设计相关文献\"",
             " ",
-            " 示例：",
-            "@@ -334,7 +334,7 @@",
-            " 8. 尚无 Bo-Md、Mo 当量等描述符计算结果。",
-            " 9. 尚无文献、计算或实验数据支持设计假设。",
-            " 10. 存在非关键未解析信息。",
-            "-11. 未提供明确的文献检索目标，literature_query 为空。",
-            "+11. 应基于研究需求推导一条聚焦、非空的 literature_query，保留用户已指定的检索对象与限制；仅当用户明确要求不查文献时 literature_query 为空。",
-            " ",
-            " ### unparsed_requirements 处理",
+            " ## 十一、计算预算识别",
             " "
           ]
         },

@@ -1,0 +1,14 @@
+{
+  "project_name": "TiForge",
+  "task_system": "titanium_alloy",
+  "log_schema_version": "v06",
+  "workflow_version": "v09",
+  "harness_version": "v01",
+  "case_id": "industrial-cost",
+  "session_id": "409c0924-2352-45e5-9bbd-893d5bdbb46d",
+  "request_id": "ac1fcfe0-874a-4e6e-b9c1-1bf04f9d9200",
+  "requested_at": "2026-11-28T13:31:43.132136+08:00",
+  "inputs": {
+    "query": "为一般工业结构件设计两个钛合金候选，目标是降低原料成本。只允许 Ti、Al、V、Fe，禁止 Ta 和 Nb。Ti 为基体，成分为 wt.%、总和 100%。没有元素价格和性能实测数据，说明定性取舍，并标记待验证事项。"
+  }
+}
