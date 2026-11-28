@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from harness.engine.common import load_cases
+from harness.core.common import load_cases
 from harness.engine.v00 import compare
 
 

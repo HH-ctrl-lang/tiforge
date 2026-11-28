@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from harness import semantic
-from harness.evaluate import evaluate_archive, validate_expected
+from harness.core.evaluate import evaluate_archive, validate_expected
 
 
 class SemanticReviewTest(unittest.TestCase):

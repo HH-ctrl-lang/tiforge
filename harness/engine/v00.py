@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 
 
-from ..evaluate import evaluate_run as _evaluate_run, load_cases
-from .common import load_batch
+from ..core.common import load_batch
+from ..core.evaluate import evaluate_run as _evaluate_run, load_cases
 
 
 def evaluate_run(run, manifest, expected):

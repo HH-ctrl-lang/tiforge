@@ -7,7 +7,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from .engine.common import load_run, node_fields, read_object, read_rows
+from .core.common import load_run, node_fields, read_object, read_rows
 
 
 RUBRIC = {
@@ -37,7 +37,7 @@ def leaves(value, path):
 
 
 def packet_for(run, nodes, expected):
-    from .evaluate import DESIGN, GATE, LITERATURE, REVIEW, by_candidate
+    from .core.evaluate import DESIGN, GATE, LITERATURE, REVIEW, by_candidate
 
     candidates = by_candidate(node_fields(nodes, DESIGN).get("candidate_list"))
     if not candidates:
@@ -133,7 +133,7 @@ def score(packet, review):
 
 
 def attach(result, run, packet):
-    from .evaluate import DESIGN
+    from .core.evaluate import DESIGN
 
     review_path = run / "semantic_review.json"
     try:
@@ -151,7 +151,7 @@ def attach(result, run, packet):
 
 
 def main():
-    from .evaluate import load_cases
+    from .core.evaluate import load_cases
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases", required=True, type=Path)

@@ -6,12 +6,14 @@ Harness 读取 [logging 归档](../logging/README.md)，按用例检查已部署
 
 | 位置                                     | 内容                                                                 |
 | ---------------------------------------- | -------------------------------------------------------------------- |
-| `engine/common.py`                     | 读取用例和归档，校验批次、提取节点字段、检查候选成分格式             |
-| `evaluate.py`                       | 单次和批量共用的评价器，包含 v00、v01 和异常处理判据                 |
-| `engine/v00.py`、`engine/v01.py`     | 各版本的运行编排、报告及版本对照，调用统一评价器                       |
-| `cases/v00.jsonl`、`cases/v01.jsonl` | 版本对应的默认用例集。每行包含 `case_id`、`inputs`、`expected` |
-| `tests/`                               | 评测逻辑的单元测试，使用模拟归档                                     |
-| `__main__.py`                          | 统一命令入口，子命令选择 Harness 版本                                |
+| `core/common.py` | 读取用例和归档，校验批次，提取节点字段，检查候选成分 |
+| `core/evaluate.py` | 单次和批量共用的评价器，包含 v00、v01 和异常处理判据 |
+| `core/propose.py`、`core/agentarts.py` | 生成离线提案，或调用 AgentArts 并核对智能体所引用的证据 |
+| `core/evidence.py`、`core/evidence_mcp.py` | 导出脱敏证据及提供只读 MCP 服务 |
+| `engine/v00.py`、`engine/v01.py` | 版本编排，负责调用共用逻辑、生成报告和对照结果 |
+| `deploy/` | 证据 MCP 的镜像配置和运行依赖 |
+| `cases/`、`tests/` | 各版本的默认用例和 Harness 单元测试 |
+| `__main__.py`、`evaluate.py`、`evidence.py` | 命令入口，实际逻辑在 `core/` 和 `engine/` |
 
 默认用例集中在 `cases/`。自定义用例可通过 `--cases` 指定。
 
@@ -58,6 +60,51 @@ python -m harness v01 --baseline '<基线归档目录>' --candidate '<候选归�
 python -m harness v00 --baseline '<基线归档目录>' --candidate '<候选归档目录>' --target-case nb-conflict-01 --change '修复 Nb 冲突时的澄清输出'
 python -B -m unittest discover -s harness/tests -v
 ```
+
+## 从已有归档生成改动提案
+
+```powershell
+python -m harness propose
+```
+
+默认扫描 `logging/archive/`，用当前 v01 的用例和独立评价器重评归档。可以指定一个或多个归档目录，例如 `python -m harness propose ./logging/archive '<历史归档目录>'`。要保留提案清单，可加 `--output '<新的 JSON 文件路径>'`。
+
+当前处理 `EMPTY_QUERY`。程序沿需求解析输出、MCP 输入和错误回包定位最早的可见偏差，按版本和偏差类型合并重复运行。每条提案包含 Run ID、证据字段、建议改文、预期修复的用例和回归风险。相同用例的通过记录优先作为参考，其他通过的设计用例仅用于说明接口行为。未找到可验证根因的失败和采集中断保留在 `unresolved`。
+
+这一实现参考 HarnessEvolve 的首处偏差定位与同源错误归组，以及 AHE 的改动清单和可检验预期。提案是待评审草案，候选版本应用和上线由后续验证决定。 [HarnessEvolve 方法](https://arxiv.org/html/2609.00829v1#S3.SS4) · [AHE 方法](https://arxiv.org/html/2604.25850v3#S3.SS3)
+
+### 接入 AgentArts 提案员
+
+在项目根目录导出联调用的两条 v08 记录。命令生成 `logging/archive/harness-evidence.json`，并保护已有文件。每次新增证据时，把重新导出的同一份快照用于 MCP 镜像和本地核验。
+
+```powershell
+python -m harness.evidence --run-id tf-20261126-194923-da3b059e28d9 --run-id tf-20261126-172736-80e955cb52d7
+```
+
+#### 在云端构建 MCP 镜像
+
+使用 CodeArts Build 的图形化构建时，选择包含本次代码的分支，构建环境选 **ARM（鲲鹏）**。在 **制作镜像并推送到 SWR 仓库** 前添加 Python 构建步骤，在代码仓根目录运行上面的证据导出命令。两条源归档已纳入版本控制，导出的快照在构建过程中生成。SWR 步骤的工作目录为代码仓根目录，Dockerfile 路径填写 `./harness/deploy/Dockerfile`，构建上下文路径填写 `.`。本机只需保留同一份快照供 CLI 核验。 [CodeArts 构建环境](https://support.huaweicloud.com/usermanual-codeci/codeci_ug_1047.html) · [制作镜像并推送到 SWR](https://support.huaweicloud.com/usermanual-codeci/codeci_ug_0013.html)
+
+有 Docker Buildx 的构建机也可在仓库根目录执行以下命令。先登录 SWR，并把镜像名换成实际地址。
+
+```powershell
+$image = '填写SWR完整镜像地址并保留标签:v01'
+docker buildx build --platform linux/arm64 -f harness/deploy/Dockerfile -t $image --push .
+```
+
+#### 部署 MCP 和发布提案员
+
+在 AgentArts 的 **托管与运行 → 智能体运行时** 创建 MCP 运行时，选择该镜像、**入站协议 MCP** 和 **入站身份认证 API Key**。镜像监听容器内的 `0.0.0.0:8000/mcp`，外部访问由运行时网关鉴权。复制运行时详情中的完整访问地址和 Key。 [MCP 运行时部署](https://support.huaweicloud.com/highcode-agentarts/agentarts_10_127.html) · [MCP 运行时访问与鉴权](https://support.huaweicloud.com/highcode-agentarts/agentarts_10_067.html)
+
+在智果 **MCP → 创建 MCP → 自定义接入** 选择 **HTTP → Streamable HTTP**，粘贴运行时的完整访问地址。鉴权选择 API Key，位置选 Header，参数名为 `Authorization`，参数值为 `Bearer <MCP API Key>`。安装后，在已配置的单智能体中添加该 MCP。调试时按用例 `industrial-cost`、版本 `v08` 查询，确认有 `list_runs`、`read_run_evidence` 调用。第一条运行应读到需求解析的空查询和文献节点的 `EMPTY_QUERY`，第二条应因连接中断返回 `needs_review`。 [自定义 MCP 接入](https://support.huaweicloud.com/lowcode-agentarts/agentarts_05_0136.html) · [挂载和调试 MCP](https://support.huaweicloud.com/lowcode-agentarts/agentarts_05_0138.html)
+
+将同一个单智能体提交版本并部署至实例，入站认证选择 API Key。把**单智能体**的调用路径和 Key 分别设置为本机进程环境变量 `TIFORGE_PROPOSER_URL`、`TIFORGE_PROPOSER_API_KEY`。证据 MCP 使用上一步单独配置的运行时凭证。 [单智能体部署和调用](https://support.huaweicloud.com/bestpractice-agentarts/agentarts_06_0021.html)
+
+```powershell
+python -m harness propose --agentarts --case industrial-cost --run-id tf-20261126-194923-da3b059e28d9 --output logging/archive/industrial-cost-proposal.json
+```
+
+工作流版本默认取项目根目录的 `config.json`，`--workflow-version` 可覆盖。省略 `--run-id` 时由智能体在当前用例和版本内选取归档。CLI 读取本次 AgentArts 调试流的 `plugin_end` 和最终 JSON，校验证据内容和目标字段。字段绑定快照目前缺失，绑定类提案需人工复核。证据快照只包含批准的字段，目前覆盖查询是否为空、分支布尔值、节点状态和已知错误码。可扩充字段范围以支持其他诊断。使用 `--evidence` 可指定本地用于核验的快照。
 
 ## 独立评价一次内环运行
 

@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from harness.engine.v01 import audit
-from harness.evaluate import evaluate_run, load_cases, load_run
+from harness.core.evaluate import evaluate_run, load_cases, load_run
 
 
 class IndependentEvaluationTest(unittest.TestCase):
